@@ -2,20 +2,24 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public class Broker extends Thread implements BrokerInterface, Node{
+public class Broker implements BrokerInterface, Node{
     //fields
-    private Socket socket = null;
-    private ServerSocket server = null;
-    private DataInputStream input   = null;
-    private DataOutputStream output = null;
-
+    private Socket clientSocket = null;
+    private ServerSocket serverSocket = null;
     private int port;
+
+    private List<Broker> brokersList;
+
+    private List<Consumer> registeredUsers;
+    private List<Publisher> registeredPublishers;
+
+
     //-------------------------
 
     Broker(int port){
+        this.port = port;
         init(port);
         connect();
-        disconnect();
     }
 
     //  broker implementation
@@ -52,17 +56,12 @@ public class Broker extends Thread implements BrokerInterface, Node{
 
     public void init(int port) {
         try{
-            this.port = port;
-            server = new ServerSocket(port);
-
-            System.out.println("Server started");
-
-            System.out.println("Waiting for a client ...");
+            serverSocket = new ServerSocket(port);
+            System.out.println(serverSocket);
         }
         catch(Exception e){
             System.out.println(e);
         }
-
     }
 
     public List<Broker> getBrokers() {
@@ -70,54 +69,85 @@ public class Broker extends Thread implements BrokerInterface, Node{
     }
 
     public void connect() {
-        try{
-            socket = server.accept();
-            System.out.println("Client accepted");
+        while (true)
+        {
+            try{
+                clientSocket = serverSocket.accept();
+                System.out.println(clientSocket);
 
-            // takes input from the client socket
-            input = new DataInputStream(
-                    new BufferedInputStream(socket.getInputStream()));
+                System.out.println("A new client is connected : " + clientSocket);
+                DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
+                DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
 
-            output    = new DataOutputStream(socket.getOutputStream());
-
-            String line = "";
-
-            // reads message from client until "Over" is sent
-            while (!line.equalsIgnoreCase("over"))
-            {
-                try
-                {
-                    line = input.readUTF();
-                    System.out.println(line);
-                    output.writeUTF("Got it!");
-
-                }
-                catch(Exception e)
-                {
-                    System.out.println(e);
-                }
+                Thread t = new ClientHandler(clientSocket, dis, dos);
+                System.out.println("Assigning new thread for this client: " + t.getId());
+                t.start();
             }
-        }
-        catch(Exception e){
-            System.out.println(e);
+            catch (Exception e){
+                System.out.println(e);
+                e.printStackTrace();
+            }
         }
     }
 
     public void disconnect() {
         try{
-            socket.close();
-            input.close();
+            clientSocket.close();
         }
-        catch(Exception e){
+        catch (Exception e){
             System.out.println(e);
         }
     }
+
     public void updateNodes() {
 
     }
 
-    public static void main(String args[])
-    {
+    public static void main(String args[]) throws Exception{
         Broker broker = new Broker(Integer.parseInt(args[0]));
+    }
+}
+
+class ClientHandler extends Thread{
+    final DataInputStream dis;
+    final DataOutputStream dos;
+    final Socket clientSocket;
+
+    public ClientHandler(Socket s, DataInputStream dis, DataOutputStream dos){
+        this.clientSocket = s;
+        this.dis = dis;
+        this.dos = dos;
+    }
+
+    @Override
+    public void run(){
+        String received;
+        String response;
+
+
+        try{
+            dos.writeUTF("What do u want?");
+
+            received = dis.readUTF();
+
+            System.out.println(received);
+            response = "Here is your answer: *********";
+            dos.writeUTF(response);
+            this.clientSocket.close();
+        }
+        catch (IOException e) {
+            System.out.println(e);
+        }
+
+
+        try{
+            // closing resources
+            this.dis.close();
+            this.dos.close();
+        }
+        catch(Exception e){
+            System.out.println(e);
+            e.printStackTrace();
+        }
     }
 }

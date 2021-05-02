@@ -2,24 +2,28 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public class Consumer extends Thread implements ConsumerInterface, Node{
+public class Consumer implements ConsumerInterface, Node{
 
     //fields
     private Socket socket = null;
-    private DataInputStream  input   = null;
-    private DataInputStream  in   = null;
-    private DataOutputStream output = null;
-    private Broker broker = null;
-    private List<Broker> brokersList;
+    private DataInputStream  dis   = null;
+    private DataOutputStream dos = null;
     private String address;
     private int port;
+    private Scanner sc;
+    private String received;
+    private String tosend;
+
+    private Broker broker = null;
+    private List<Broker> brokersList;
+
 
     //methods
 
     public Consumer(int port){
+        this.port = port;
         init(port);
         connect();
-        disconnect();
     }
 
     //Consumer Methods Implementation
@@ -48,52 +52,42 @@ public class Consumer extends Thread implements ConsumerInterface, Node{
 
     public void connect() {
         try{
-            socket = new Socket(Inet4Address.getLocalHost().getHostAddress(), port);
+            sc = new Scanner(System.in);
+            address = "localhost";
+            socket = new Socket(address, port);
+            System.out.println(socket);
 
-            // takes input from terminal
-            input  = new DataInputStream(System.in);
+            dis = new DataInputStream((socket.getInputStream()));
+            dos = new DataOutputStream(socket.getOutputStream());
 
-            in = new DataInputStream(
-                    new BufferedInputStream(socket.getInputStream()));
 
-            // sends output to the socket
-            output    = new DataOutputStream(socket.getOutputStream());
+            System.out.println(dis.readUTF());
+            tosend = sc.nextLine();
+            dos.writeUTF(tosend);
+            received = dis.readUTF();
+            System.out.println("Closing this connection : " + socket);
+            socket.close();
+            System.out.println("Connection closed");
+            socket.close();
+            System.out.println(received);
 
-            // string to read message from input
-            String line = "";
-            String response = "";
-
-            // keep reading until "Over" is input
-            while (!line.equalsIgnoreCase("over"))
-            {
-                try
-                {
-                    line = input.readLine();
-                    output.writeUTF(line);
-                    response = in.readUTF();
-                    System.out.println(response);
-                }
-                catch(Exception e)
-                {
-                    System.out.println(e);
-                }
-            }
         }
         catch(Exception e){
-            System.out.println(e);
+            System.out.println("connect(): ");
+            e.printStackTrace();
         }
+        disconnect();
     }
 
     public void disconnect() {
-        try
-        {
-            input.close();
-            output.close();
-            socket.close();
+        try {
+            sc.close();
+            dis.close();
+            dos.close();
         }
         catch(Exception e)
         {
-            System.out.println(e);
+            System.out.println("disconnect(): " + e);
         }
     }
 
@@ -101,7 +95,7 @@ public class Consumer extends Thread implements ConsumerInterface, Node{
 
     }
 
-    public static void main(String args[]){
+    public static void main(String args[]) throws Exception{
         Consumer consumer = new Consumer(Integer.parseInt(args[0]));
     }
 }
