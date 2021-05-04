@@ -2,22 +2,17 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public class Consumer implements ConsumerInterface, Node{
+public class Consumer implements ConsumerInterface, Node, Serializable{
 
     //fields
-    private Socket socket = null;
-    private DataInputStream  dis   = null;
-    private DataOutputStream dos = null;
+    private transient Socket socket = null;
+    private ObjectInputStream  ois = null;
     private String address;
     private int port;
     private Scanner sc;
-    private String received;
-    private String tosend;
 
     private Broker broker = null;
-    private List<Broker> brokersList;
-
-
+    
     //methods
 
     public Consumer(int port){
@@ -25,6 +20,7 @@ public class Consumer implements ConsumerInterface, Node{
         init(port);
         connect();
     }
+
 
     //Consumer Methods Implementation
 
@@ -55,22 +51,24 @@ public class Consumer implements ConsumerInterface, Node{
             sc = new Scanner(System.in);
             address = "localhost";
             socket = new Socket(address, port);
-            System.out.println(socket);
+            System.out.println("Socket= " + socket);
 
-            dis = new DataInputStream((socket.getInputStream()));
-            dos = new DataOutputStream(socket.getOutputStream());
+            ois = new ObjectInputStream((socket.getInputStream()));
 
+            System.out.println("Waiting for server's response");
+            Broker temp = (Broker) ois.readObject();
+            while(temp!=null){
+                brokers.add(temp);
+                temp = (Broker) ois.readObject();
+            }
+            System.out.println("List acquired");
 
-            System.out.println(dis.readUTF());
-            tosend = sc.nextLine();
-            dos.writeUTF(tosend);
-            received = dis.readUTF();
-            System.out.println("Closing this connection : " + socket);
+            for(int i=0; i<brokers.size(); i++){
+                System.out.println(brokers.get(i).id);
+            }
+
             socket.close();
             System.out.println("Connection closed");
-            socket.close();
-            System.out.println(received);
-
         }
         catch(Exception e){
             System.out.println("connect(): ");
@@ -82,8 +80,6 @@ public class Consumer implements ConsumerInterface, Node{
     public void disconnect() {
         try {
             sc.close();
-            dis.close();
-            dos.close();
         }
         catch(Exception e)
         {

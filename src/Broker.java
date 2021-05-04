@@ -4,24 +4,22 @@ import java.util.*;
 import java.security.*;
 import java.math.*;
 
-public class Broker implements BrokerInterface, Node{
+public class Broker implements BrokerInterface, Node, Serializable{
     //fields
-    private Socket clientSocket = null;
-    private ServerSocket serverSocket = null;
+    private transient Socket clientSocket = null;
+    private transient ServerSocket serverSocket = null;
     private int port;
-
-    private List<Broker> brokersList;
-
+    private Boolean isOnline = false;
     private List<Consumer> registeredUsers;
     private List<Publisher> registeredPublishers;
-
+    public int id = 0;
 
     //-------------------------
-
-    Broker(int port){
+    
+    Broker(int port, int id){
         this.port = port;
+        this.id= id;
         init(port);
-        connect();
     }
     public static String encryptThisString(String input)
     {
@@ -110,10 +108,9 @@ public class Broker implements BrokerInterface, Node{
                 System.out.println(clientSocket);
 
                 System.out.println("A new client is connected : " + clientSocket);
-                DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
-                DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
+                ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
 
-                Thread t = new ClientHandler(clientSocket, dis, dos);
+                Thread t = new ClientHandler(clientSocket, oos, brokers);
                 System.out.println("Assigning new thread for this client: " + t.getId());
                 t.start();
             }
@@ -134,50 +131,59 @@ public class Broker implements BrokerInterface, Node{
     }
 
     public void updateNodes() {
-
+        if(isOnline==false){
+            brokers.add(this);
+            isOnline = true;
+        }
+        else{
+            brokers.remove(this);
+        }
     }
 
     public static void main(String args[]) throws Exception{
-        Broker broker = new Broker(Integer.parseInt(args[0]));
+        Broker broker = new Broker(Integer.parseInt(args[0]), 1);
+        broker.updateNodes();
+        for(int i=0; i<brokers.size(); i++){
+            System.out.println("Broker = " + brokers.get(i) + " "+ brokers.get(i).id);
+        }
+        broker.connect();
+        broker.updateNodes();
     }
 }
 
 class ClientHandler extends Thread{
-    final DataInputStream dis;
-    final DataOutputStream dos;
+    
+    final ObjectOutputStream oos;
     final Socket clientSocket;
+    final List<Broker> temp_brokers = new ArrayList<Broker>();
 
-    public ClientHandler(Socket s, DataInputStream dis, DataOutputStream dos){
+    public ClientHandler(Socket s, ObjectOutputStream oos, List<Broker> b){
         this.clientSocket = s;
-        this.dis = dis;
-        this.dos = dos;
+        this.oos = oos;
+
+        for (int i=0; i< b.size(); i++){
+            this.temp_brokers.add(b.get(i));
+        }
     }
 
     @Override
     public void run(){
-        String received;
-        String response;
-
-
+        
         try{
-            dos.writeUTF("What do u want?");
-
-            received = dis.readUTF();
-
-            System.out.println(received);
-            response = "Here is your answer: *********";
-            dos.writeUTF(response);
+            for (int i=0; i< temp_brokers.size(); i++){
+                oos.writeObject(temp_brokers.get(i));
+            }
+            Broker end = null;
+            oos.writeObject(end);
             this.clientSocket.close();
         }
         catch (IOException e) {
             System.out.println(e);
         }
 
-
         try{
             // closing resources
-            this.dis.close();
-            this.dos.close();
+            this.oos.close();
         }
         catch(Exception e){
             System.out.println(e);

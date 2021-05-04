@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Scanner; // Import the Scanner class to read text files
 
 public class ReadFile {
-    ArrayList<String> ourhashtags = new ArrayList<String>() ;
+    ArrayList<String> elem = new ArrayList<String>() ;
 
     public ArrayList<String> ReadFile (String f)  {
         try {
@@ -12,7 +12,7 @@ public class ReadFile {
             Scanner myReader = new Scanner(myObj);
             while (myReader.hasNextLine()) {
                 String data = myReader.nextLine();
-                ourhashtags.add(data);
+                elem.add(data);
             }
             myReader.close();
 
@@ -20,7 +20,7 @@ public class ReadFile {
             System.out.println("An error occurred.");
             e.printStackTrace();
         }
-        return ourhashtags;
+        return elem;
     }
 
 }
