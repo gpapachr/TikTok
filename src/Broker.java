@@ -57,6 +57,17 @@ public class Broker implements BrokerInterface, Node, Serializable{
         }
     }
 
+
+    public void extractDuplicates(List<Broker> b){
+        for (int i = 0; i<b.size(); i++){
+            for(int j = i+1; j<b.size(); j++){
+                if (b.get(i) == b.get(j)){
+                    b.remove(b.get(j));
+                }
+            }
+        }
+    }
+
     //  broker implementation
     public void calculateKeys() {
 
@@ -80,14 +91,116 @@ public class Broker implements BrokerInterface, Node, Serializable{
             case 5000:
                 try{
                     address = "localhost";
-                    brokerSocket = new Socket(address, port);
+                    brokerSocket = new Socket(address, 6000);
+                    DataOutputStream dos = new DataOutputStream(brokerSocket.getOutputStream());
+                    dos.writeUTF("update_nodes");
+                    DataInputStream dis = new DataInputStream(brokerSocket.getInputStream());
+                    int length = dis.readInt();
+                    ObjectInputStream ois = new ObjectInputStream(brokerSocket.getInputStream());
+                    Broker temp = null;
+                    for (int i = 0; i<length; i++){
+                        temp = (Broker) ois.readObject();
+                        brokers.add(temp);
+                    }
+                    brokerSocket.close();
+                }
+                catch(Exception e){
+                    e.printStackTrace();
+                }
+                try{
+                    address = "localhost";
+                    brokerSocket = new Socket(address, 7000);
+                    DataOutputStream dos = new DataOutputStream(brokerSocket.getOutputStream());
+                    dos.writeUTF("update_nodes");
+                    DataInputStream dis = new DataInputStream(brokerSocket.getInputStream());
+                    int length = dis.readInt();
+                    ObjectInputStream ois = new ObjectInputStream(brokerSocket.getInputStream());
+                    Broker temp = null;
+                    for (int i = 0; i<length; i++){
+                        temp = (Broker) ois.readObject();
+                        brokers.add(temp);
+                    }
+                    brokerSocket.close();
                 }
                 catch(Exception e){
                     e.printStackTrace();
                 }
             case 6000:
+                try{
+                    address = "localhost";
+                    brokerSocket = new Socket(address, 5000);
+                    DataOutputStream dos = new DataOutputStream(brokerSocket.getOutputStream());
+                    dos.writeUTF("update_nodes");
+                    DataInputStream dis = new DataInputStream(brokerSocket.getInputStream());
+                    int length = dis.readInt();
+                    ObjectInputStream ois = new ObjectInputStream(brokerSocket.getInputStream());
+                    Broker temp = null;
+                    for (int i = 0; i<length; i++){
+                        temp = (Broker) ois.readObject();
+                        brokers.add(temp);
+                    }
+                    brokerSocket.close();
+                }
+                catch(Exception e){
+                    e.printStackTrace();
+                }
+                try{
+                    address = "localhost";
+                    brokerSocket = new Socket(address, 7000);
+                    DataOutputStream dos = new DataOutputStream(brokerSocket.getOutputStream());
+                    dos.writeUTF("update_nodes");
+                    DataInputStream dis = new DataInputStream(brokerSocket.getInputStream());
+                    int length = dis.readInt();
+                    ObjectInputStream ois = new ObjectInputStream(brokerSocket.getInputStream());
+                    Broker temp = null;
+                    for (int i = 0; i<length; i++){
+                        temp = (Broker) ois.readObject();
+                        brokers.add(temp);
+                    }
+                    brokerSocket.close();
+                }
+                catch(Exception e){
+                    e.printStackTrace();
+                }
             case 7000:
+                try{
+                    address = "localhost";
+                    brokerSocket = new Socket(address, 5000);
+                    DataOutputStream dos = new DataOutputStream(brokerSocket.getOutputStream());
+                    dos.writeUTF("update_nodes");
+                    DataInputStream dis = new DataInputStream(brokerSocket.getInputStream());
+                    int length = dis.readInt();
+                    ObjectInputStream ois = new ObjectInputStream(brokerSocket.getInputStream());
+                    Broker temp = null;
+                    for (int i = 0; i<length; i++){
+                        temp = (Broker) ois.readObject();
+                        brokers.add(temp);
+                    }
+                    brokerSocket.close();
+                }
+                catch(Exception e){
+                    e.printStackTrace();
+                }
+                try{
+                    address = "localhost";
+                    brokerSocket = new Socket(address, 6000);
+                    DataOutputStream dos = new DataOutputStream(brokerSocket.getOutputStream());
+                    dos.writeUTF("update_nodes");
+                    DataInputStream dis = new DataInputStream(brokerSocket.getInputStream());
+                    int length = dis.readInt();
+                    ObjectInputStream ois = new ObjectInputStream(brokerSocket.getInputStream());
+                    Broker temp = null;
+                    for (int i = 0; i<length; i++){
+                        temp = (Broker) ois.readObject();
+                        brokers.add(temp);
+                    }
+                    brokerSocket.close();
+                }
+                catch(Exception e){
+                    e.printStackTrace();
+                }
         }
+        extractDuplicates(brokers);
     }
 
     public void pull(String s) {
@@ -123,10 +236,12 @@ public class Broker implements BrokerInterface, Node, Serializable{
                 System.out.println(clientSocket);
 
                 System.out.println("A new client is connected : " + clientSocket);
+                ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
                 ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
-                DataInputStream dio = new DataInputStream(clientSocket.getInputStream());
+                DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
+                DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
                 
-                Thread t = new ClientHandler(clientSocket, oos, dio, this);
+                Thread t = new Handler(clientSocket, ois, oos, dis, dos, brokers);
                 System.out.println("Assigning new thread for this client: " + t.getId());
                 t.start();
             }
@@ -159,31 +274,42 @@ public class Broker implements BrokerInterface, Node, Serializable{
     public static void main(String args[]) throws Exception{
         Broker broker = new Broker(Integer.parseInt(args[0]), 1);
         broker.updateNodes();
-        for(int i=0; i<brokers.size(); i++){
-            System.out.println("Broker = " + brokers.get(i) + " "+ brokers.get(i).id);
-        }
+        broker.notifyBrokersOnChanges();
         broker.connect();
         broker.updateNodes();
     }
 }
 
-class ClientHandler extends Thread{
+class Handler extends Thread{
     
+    final ObjectInputStream ois;
     final ObjectOutputStream oos;
+    final DataInputStream dis;
+    final DataOutputStream dos;
     final Socket clientSocket;
-    final Broker b;
+    final List<Broker> temp_brokers = new ArrayList<Broker>();
 
-    public ClientHandler(Socket s, ObjectOutputStream oos, Broker b){
+    public Handler(Socket s, ObjectInputStream ois, ObjectOutputStream oos, DataInputStream dis, DataOutputStream dos, List<Broker> b){
+        
         this.clientSocket = s;
+        this.ois = ois;
         this.oos = oos;
-        this.b = b;
+        this.dis = dis;
+        this.dos = dos;
+
+        for(int i=0; i<b.size(); i++){
+            this.temp_brokers.add(b.get(i));
+        }
     }
 
     @Override
     public void run(){
         
         try{
-            oos.writeObject(b);
+            dos.writeInt(temp_brokers.size());
+            for(int i=0; i<temp_brokers.size(); i++){
+                oos.writeObject(temp_brokers.get(i));
+            }            
             this.clientSocket.close();
         }
         catch (IOException e) {
