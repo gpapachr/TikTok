@@ -8,11 +8,15 @@ public class Broker implements BrokerInterface, Node, Serializable{
     //fields
     private transient Socket clientSocket = null;
     private transient ServerSocket serverSocket = null;
+    private transient Socket brokerSocket = null;
+
     private int port;
+    public int id = 0;
+    String address;
+
     private Boolean isOnline = false;
     private List<Consumer> registeredUsers;
     private List<Publisher> registeredPublishers;
-    public int id = 0;
 
     //-------------------------
     
@@ -72,7 +76,18 @@ public class Broker implements BrokerInterface, Node, Serializable{
     }
 
     public void notifyBrokersOnChanges() {
-
+        switch(port){
+            case 5000:
+                try{
+                    address = "localhost";
+                    brokerSocket = new Socket(address, port);
+                }
+                catch(Exception e){
+                    e.printStackTrace();
+                }
+            case 6000:
+            case 7000:
+        }
     }
 
     public void pull(String s) {
@@ -109,8 +124,9 @@ public class Broker implements BrokerInterface, Node, Serializable{
 
                 System.out.println("A new client is connected : " + clientSocket);
                 ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
-
-                Thread t = new ClientHandler(clientSocket, oos, brokers);
+                DataInputStream dio = new DataInputStream(clientSocket.getInputStream());
+                
+                Thread t = new ClientHandler(clientSocket, oos, dio, this);
                 System.out.println("Assigning new thread for this client: " + t.getId());
                 t.start();
             }
@@ -155,26 +171,19 @@ class ClientHandler extends Thread{
     
     final ObjectOutputStream oos;
     final Socket clientSocket;
-    final List<Broker> temp_brokers = new ArrayList<Broker>();
+    final Broker b;
 
-    public ClientHandler(Socket s, ObjectOutputStream oos, List<Broker> b){
+    public ClientHandler(Socket s, ObjectOutputStream oos, Broker b){
         this.clientSocket = s;
         this.oos = oos;
-
-        for (int i=0; i< b.size(); i++){
-            this.temp_brokers.add(b.get(i));
-        }
+        this.b = b;
     }
 
     @Override
     public void run(){
         
         try{
-            for (int i=0; i< temp_brokers.size(); i++){
-                oos.writeObject(temp_brokers.get(i));
-            }
-            Broker end = null;
-            oos.writeObject(end);
+            oos.writeObject(b);
             this.clientSocket.close();
         }
         catch (IOException e) {
