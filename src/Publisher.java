@@ -107,7 +107,9 @@ public class Publisher extends Thread implements PublisherInterface, Node{
 
     public void generateChunks(String path) {
         VideoFile vf = new VideoFile(path);
-        Mp4Parse parser = new Mp4Parse();
+        //Mp4Parse parser = new Mp4Parse();
+        //byte[] temp = parser.generateChunks(path);
+        //vf.setChunks(temp);
     }
 
     public static void main(String args[]) throws Exception{
