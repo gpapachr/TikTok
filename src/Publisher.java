@@ -9,6 +9,14 @@ public class Publisher extends Thread implements PublisherInterface, Node{
     public ArrayList<VideoFile> videos;
     public ArrayList<String> hashtags = new ArrayList<String>();
     public Boolean message = false;
+    //fields
+    private transient Socket socket = null;
+    private ObjectInputStream  ois = null;
+    private String address;
+    private int port;
+    private Scanner sc;
+
+    private Broker broker = null;
 
 
     public ChannelName getChannelName() {
@@ -18,7 +26,7 @@ public class Publisher extends Thread implements PublisherInterface, Node{
 
     //implementation
     public void init(int i) {
-        videos = new ArrayList<myObj>();
+        videos = new ArrayList<VideoFile>();
 
     }
 
@@ -81,9 +89,9 @@ public class Publisher extends Thread implements PublisherInterface, Node{
 
     }
 
-    public void getBrokerList() {
-        return brokers;
-    }
+    // public void getBrokerList() {
+    //     return brokers;
+    // }
 
     public Broker HashTopic(String s) {
         return null;
@@ -112,7 +120,7 @@ public class Publisher extends Thread implements PublisherInterface, Node{
         //vf.setChunks(temp);
     }
 
-    public static void main(String args[]) throws Exception{
-        Publisher publisher = new Publisher(Integer.parseInt(args[0]));
-    }
+    // public static void main(String args[]) throws Exception{
+    //     Publisher publisher = new Publisher(Integer.parseInt(args[0]));
+    // }
 }

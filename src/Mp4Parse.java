@@ -1,62 +1,72 @@
-import org.apache.tika.*;
+// import org.apache.tika.*;
 import org.xml.sax.SAXException;
 
 import java.io.*;
+import java.util.*;
 
 public class Mp4Parse{
 
-   int i = 01;// Files count starts from 1
-   InputStream inputStream = new FileInputStream(file);
-   OutputStream outputStream;
-   int chunkSize = 100*1024*1024;
-   int parts = inputStream.available() / chunkSize;
-   String fileCount;
-   int read;
-   int streamSize = 0;
+   // ArrayList<Byte> chunks = new ArrayList<Byte>();
+
    byte[] chunks;
 
-    public byte[] generateChunks(String path) {
-        try {
-            File file = new File(path);//File read from Source folder to Split.
-            if (file.exists()) {
-
-                String videoFileName = file.getName().substring(0, file.getName().lastIndexOf(".")); // Name of the videoFile without extension
-                File splitFile = new File("Videos_Split/"+ videoFileName);//Destination folder to save.
-                if (!splitFile.exists()) {
-                    splitFile.mkdirs();
-                    System.out.println("Directory Created -> "+ splitFile.getAbsolutePath());
-                }
-
-                
-                while ((read = inputStream.read()) != -1) {
-
-                    if (chunkSize == streamSize) {
-                        if (i != parts) {
-                            fileCount = String.format("%02d", i); 
-                            videoFile = splitFile.getAbsolutePath() +"/"+ fileCount +"_"+ file.getName();
-                            //chunks.add(videoFile)
-                            outputStream = new FileOutputStream(videoFile);
-                            System.out.println("File Created Location: "+ videoFile);
-                            i++;
-                        }
-                    }                    
-                    
-                    outputStream.write(read);
-                    streamSize++;
-                }
-
-                inputStream.close();
-                outputStream.close();
-                System.out.println("Total files Split ->"+ parts);
-            } 
-            else {
-                System.err.println(file.getAbsolutePath() +" File Not Found.");
+   public static void main(String args[]){
+      try {
+         File file = new File("C:/Windows/System32/cmd.exe");//File read from Source folder to Split.
+         
+         if (file.exists()) {
+            String videoFileName = file.getName().substring(0, file.getName().lastIndexOf(".")); // Name of the videoFile without extension
+            File splitFile = new File("Videos_Split/"+ videoFileName);//Destination folder to save.
+            if (!splitFile.exists()) {
+               splitFile.mkdirs();
+               System.out.println("Directory Created -> "+ splitFile.getAbsolutePath());
             }
-            return chunks;
-        } 
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+
+            int i = 01;// Files count starts from 1
+            InputStream inputStream = new FileInputStream(file);
+            OutputStream outputStream;
+            int chunkSize = 100*1024*1024;
+            int parts = (inputStream.available() / chunkSize) + 1;
+            String fileCount;
+            int read;
+            int streamSize = 0;
+            String videoFile;
+            byte x;
+            // int count = 0;
+            while ((read = inputStream.read()) != -1) {
+               if (chunkSize == streamSize) {
+                  if (i != parts) {
+                     fileCount = String.format("%02d", i); 
+                     videoFile = splitFile.getAbsolutePath() +"/"+ fileCount +"_"+ file.getName();
+                     // count = count + 1;
+                     // chunks[count] = videoFile.getBytes();
+                     // byte[] chunks = videoFile.getBytes();
+                     outputStream = new FileOutputStream(videoFile);
+                     byte[] chunks = outputStream.getBytes();
+                     // System.out.println("File Created Location: "+ videoFile);
+                     i++;
+                  }
+               }                    
+               outputStream.write(read);
+               streamSize++;
+            }
+            for(int j=0; j<chunks.length; j++){
+               x = chunks[j];
+               System.out.println(x);
+            }
+
+            inputStream.close();
+            outputStream.close();
+            System.out.println("Total files Split ->"+ parts);
+         } 
+         else {
+            System.err.println(file.getAbsolutePath() +" File Not Found.");
+         }
+            // return chunks;
+      } 
+      catch (Exception e) {
+         e.printStackTrace();
+      }
    }
 }
 
