@@ -16,7 +16,6 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
     //methods
 
     public Consumer(int port){
-        this.port = port;
         init(port);
         connect();
     }

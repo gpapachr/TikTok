@@ -1,7 +1,5 @@
 import java.util.*;
 import java.io.File;
-import org.mp4parser.IsoFile;
-import org.mp4parser.boxes.iso14496.part12.MovieHeaderBox;
 
 public class VideoFile {
     private String videoName;
@@ -12,14 +10,14 @@ public class VideoFile {
     private String frameWidth;
     private String frameHeight;
     private ArrayList<String> associatedHashtags = new ArrayList<String>();
-    private byte[] videoFileChunk;
+    private ArrayList<byte[]> videoFileChunk;
     private String path;
 
 
     VideoFile(String s) {
         this.path = s;
         File video = new File(path);
-        this.length = getVideoLength(video);
+        //this.length = getVideoLength(video);
     }
 
     public void setChannelName(String channelName) {
@@ -44,8 +42,11 @@ public class VideoFile {
         return null;
     }
 
-    public void setVideoFileChunk(byte videoFileChunk) {
-        this.videoFileChunk = videoFileChunk;
+    public void setVideoFileChunk(ArrayList<byte[]> chunks) {
+        videoFileChunk = new ArrayList<byte[]>();
+        for(int i=0; i < chunks.size(); i++){
+            videoFileChunk.add(chunks.get(i));
+        }
     }
 
     
@@ -73,7 +74,7 @@ public class VideoFile {
 
 
 
-    public String getVideoName() {
+  /*  public String getVideoName() {
         return videoName;
     }
 
@@ -123,7 +124,7 @@ public class VideoFile {
 
     public ArrayList<String> getAssociatedHashtags() {
         return associatedHashtags;
-    }
+    }*/
 
    
 

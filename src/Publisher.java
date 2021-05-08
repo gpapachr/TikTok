@@ -1,22 +1,27 @@
-import java.util.List;
+import java.net.*;
 import java.util.*;
 import java.io.*;
 
 
-public class Publisher extends Thread implements PublisherInterface, Node{
+public class Publisher extends Thread implements PublisherInterface, Node, Serializable{
     private ChannelName channelName;
-
     public ArrayList<VideoFile> videos;
     public ArrayList<String> hashtags = new ArrayList<String>();
     public Boolean message = false;
-    //fields
+    public ArrayList<byte[]> chunks = new ArrayList<byte[]>();
     private transient Socket socket = null;
     private ObjectInputStream  ois = null;
     private String address;
     private int port;
     private Scanner sc;
-
     private Broker broker = null;
+    private ObjectOutputStream  oos = null;
+    
+    Publisher(int port, ChannelName channelName){
+        this.channelName = channelName;
+        init(port);
+    }
+    
 
 
     public ChannelName getChannelName() {
@@ -25,8 +30,9 @@ public class Publisher extends Thread implements PublisherInterface, Node{
 
 
     //implementation
-    public void init(int i) {
+    public void init(int port) {
         videos = new ArrayList<VideoFile>();
+        this.port = port;
 
     }
 
@@ -35,44 +41,24 @@ public class Publisher extends Thread implements PublisherInterface, Node{
     }
 
     public void connect() {
-        try{
-            sc = new Scanner(System.in);
-            address = "localhost";
-            socket = new Socket(address, port);
-            System.out.println("Socket= " + socket);
+        sc = new Scanner(System.in);
+        address = "localhost";
+        socket = new Socket(address, port);
+        System.out.println("Socket= " + socket);
 
-            ois = new ObjectInputStream((socket.getInputStream()));
-
-            System.out.println("Waiting for server's response");
-            Broker temp = (Broker) ois.readObject();
-            while(temp!=null){
-                brokers.add(temp);
-                temp = (Broker) ois.readObject();
-            }
-            System.out.println("List acquired");
-
-            for(int i=0; i<brokers.size(); i++){
-                System.out.println(brokers.get(i).id);
-            }
-
-            socket.close();
-            System.out.println("Connection closed");
+        oos = new ObjectOutputStream((socket.getOutputStream()));
+        
+        for(int i = 0; i < videoFileChunk.size(); i++){
+            for(int j = 0; j <videoFileChunk.get(i).length; j++){
+            oos.writeObject(videoFileChunk.get(i).[j]);
+          }  
         }
-        catch(Exception e){
-            System.out.println("connect(): ");
-            e.printStackTrace();
-        }
-        disconnect();
+        
+        socket.close();
     }
 
     public void disconnect() {
-        try {
-            sc.close();
-        }
-        catch(Exception e)
-        {
-            System.out.println("disconnect(): " + e);
-        }
+       
     }
 
     public void updateNodes() {
@@ -89,16 +75,17 @@ public class Publisher extends Thread implements PublisherInterface, Node{
 
     }
 
-    // public void getBrokerList() {
-    //     return brokers;
-    // }
+    public void getBrokerList() {
+        
+    }
 
     public Broker HashTopic(String s) {
         return null;
     }
 
-    public void push(String s, Value v) {
-
+    public void push(String path) {
+        generateChunks(path);
+        connect();
     }
 
     public void notifyFailure(Broker b) {
@@ -112,15 +99,19 @@ public class Publisher extends Thread implements PublisherInterface, Node{
     public void notifyBrokersForHashTags(String s) {
 
     }
-
+    
     public void generateChunks(String path) {
         VideoFile vf = new VideoFile(path);
-        //Mp4Parse parser = new Mp4Parse();
-        //byte[] temp = parser.generateChunks(path);
-        //vf.setChunks(temp);
+        Mp4Parse mp = new Mp4Parse(path);
+        
+        chunks = mp.parse();
+        vf.setVideoFileChunk(chunks);
+
     }
 
-    // public static void main(String args[]) throws Exception{
-    //     Publisher publisher = new Publisher(Integer.parseInt(args[0]));
-    // }
+    public static void main(String args[]) throws Exception{
+        ChannelName channel = new ChannelName("fotis_panos");
+        Publisher publisher = new Publisher(5000, channel.getChannelName());
+        
+    }
 }

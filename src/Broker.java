@@ -228,22 +228,39 @@ public class Broker implements BrokerInterface, Node, Serializable{
         return null;
     }
 
-    public void connect() {
+    public void connect() {        
         while (true)
         {
             try{
                 clientSocket = serverSocket.accept();
                 System.out.println(clientSocket);
-
-                System.out.println("A new client is connected : " + clientSocket);
-                ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
-                ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
-                DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
-                DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
                 
-                Thread t = new Handler(clientSocket, ois, oos, dis, dos, brokers);
-                System.out.println("Assigning new thread for this client: " + t.getId());
-                t.start();
+                DataInputStream typeInput = new DataInputStream(clientSocket.getInputStream());
+                type = typeInput.ReadUTF();
+                switch(int type){
+                    case 1:
+                        System.out.println("A new client is connected : " + clientSocket);
+                        ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
+                        ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
+                        DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
+                        DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
+                        
+                        Thread t = new Handler(clientSocket, ois, oos, dis, dos, brokers);
+                        System.out.println("Assigning new thread for this client: " + t.getId());
+                        t.start();
+
+                    case 2:
+                        System.out.println("A new publisher is connected : " + clientSocket);
+                        ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
+                        ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
+                        DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
+                        DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
+
+                        Thread t = new Handler(clientSocket, ois, oos, dis, dos, brokers);
+                        System.out.println("Assigning new thread for this client: " + t.getId());
+                        t.start();
+                }
+                
             }
             catch (Exception e){
                 System.out.println(e);

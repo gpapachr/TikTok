@@ -5,6 +5,10 @@ public class ChannelName {
     public ArrayList<String> hashtagsPublished;
     public HashMap<String, ArrayList<Value>> userVideoFilesMap;
 
+    ChannelName(String channelName){
+        this.channelName = channelName;
+    }
+
     public String getChannelName() {
         return channelName;
     }
