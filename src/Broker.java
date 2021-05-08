@@ -6,7 +6,7 @@ import java.math.*;
 
 public class Broker implements BrokerInterface, Node, Serializable{
     //fields
-    private transient Socket clientSocket = null;
+    private transient Socket socket = null;
     private transient ServerSocket serverSocket = null;
     private transient Socket brokerSocket = null;
 
@@ -17,6 +17,13 @@ public class Broker implements BrokerInterface, Node, Serializable{
     private Boolean isOnline = false;
     private List<Consumer> registeredUsers;
     private List<Publisher> registeredPublishers;
+
+    private ObjectInputStream ois = null;
+    private ObjectOutputStream oos = null;
+    private DataInputStream dis = null;
+    private DataOutputStream dos = null;
+
+    protected HashMap<String, VideoFile> videos = new HashMap<String, VideoFile>();
 
     //-------------------------
     
@@ -232,35 +239,44 @@ public class Broker implements BrokerInterface, Node, Serializable{
         while (true)
         {
             try{
-                clientSocket = serverSocket.accept();
-                System.out.println(clientSocket);
+                socket = serverSocket.accept();
+                System.out.println(socket);
+                Thread t;
                 
-                DataInputStream typeInput = new DataInputStream(clientSocket.getInputStream());
-                type = typeInput.ReadUTF();
-                switch(int type){
-                    case 1:
-                        System.out.println("A new client is connected : " + clientSocket);
-                        ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
-                        ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
-                        DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
-                        DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
+                DataInputStream typeInput = new DataInputStream(socket.getInputStream());
+                int type = typeInput.readInt();
+                switch(type){
+                    case 1: // is consumer
+                        System.out.println("A new client is connected : " + socket);
+                        ois = new ObjectInputStream(socket.getInputStream());
+                        oos = new ObjectOutputStream(socket.getOutputStream());
+                        dis = new DataInputStream(socket.getInputStream());
+                        dos = new DataOutputStream(socket.getOutputStream());
                         
-                        Thread t = new Handler(clientSocket, ois, oos, dis, dos, brokers);
+                        t = new ClientHandler(socket, ois, oos, dis, dos, brokers);
                         System.out.println("Assigning new thread for this client: " + t.getId());
                         t.start();
 
-                    case 2:
-                        System.out.println("A new publisher is connected : " + clientSocket);
-                        ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
-                        ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
-                        DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
-                        DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
+                    case 2: // publisher uploads new video
+                        System.out.println("A new publisher is connected : " + socket);
+                        ois = new ObjectInputStream(socket.getInputStream());
+                        oos = new ObjectOutputStream(socket.getOutputStream());
+                        dis = new DataInputStream(socket.getInputStream());
+                        dos = new DataOutputStream(socket.getOutputStream());
 
-                        Thread t = new Handler(clientSocket, ois, oos, dis, dos, brokers);
+                        t = new PublisherHandler1(socket, ois, oos, dis, dos, this);
                         System.out.println("Assigning new thread for this client: " + t.getId());
                         t.start();
-                }
-                
+                    case 3: // publisher removes video - updates video map
+                    System.out.println("A new publisher is connected : " + socket);
+                    ois = new ObjectInputStream(socket.getInputStream());
+                    oos = new ObjectOutputStream(socket.getOutputStream());
+                    dis = new DataInputStream(socket.getInputStream());
+                    dos = new DataOutputStream(socket.getOutputStream());
+                    t = new PublisherHandler2(socket, ois, oos, dis, dos, this);
+                    System.out.println("Assigning new thread for this client: " + t.getId());
+                    t.start();
+                }                
             }
             catch (Exception e){
                 System.out.println(e);
@@ -271,7 +287,7 @@ public class Broker implements BrokerInterface, Node, Serializable{
 
     public void disconnect() {
         try{
-            clientSocket.close();
+            socket.close();
         }
         catch (Exception e){
             System.out.println(e);
@@ -290,14 +306,14 @@ public class Broker implements BrokerInterface, Node, Serializable{
 
     public static void main(String args[]) throws Exception{
         Broker broker = new Broker(Integer.parseInt(args[0]), 1);
-        broker.updateNodes();
-        broker.notifyBrokersOnChanges();
+        // broker.updateNodes();
+        // broker.notifyBrokersOnChanges();
         broker.connect();
-        broker.updateNodes();
+        // broker.updateNodes();
     }
 }
 
-class Handler extends Thread{
+class ClientHandler extends Thread{
     
     final ObjectInputStream ois;
     final ObjectOutputStream oos;
@@ -306,7 +322,7 @@ class Handler extends Thread{
     final Socket clientSocket;
     final List<Broker> temp_brokers = new ArrayList<Broker>();
 
-    public Handler(Socket s, ObjectInputStream ois, ObjectOutputStream oos, DataInputStream dis, DataOutputStream dos, List<Broker> b){
+    public ClientHandler(Socket s, ObjectInputStream ois, ObjectOutputStream oos, DataInputStream dis, DataOutputStream dos, List<Broker> b){
         
         this.clientSocket = s;
         this.ois = ois;
@@ -339,6 +355,85 @@ class Handler extends Thread{
         }
         catch(Exception e){
             System.out.println(e);
+            e.printStackTrace();
+        }
+    }
+}
+
+class PublisherHandler1 extends Thread{
+    final ObjectInputStream ois;
+    final ObjectOutputStream oos;
+    final DataInputStream dis;
+    final DataOutputStream dos;
+    final Socket publisherSocket;
+    final Broker broker;
+
+    public PublisherHandler1(Socket s, ObjectInputStream ois, ObjectOutputStream oos, DataInputStream dis, DataOutputStream dos, Broker broker){
+        
+        this.publisherSocket = s;
+        this.ois = ois;
+        this.oos = oos;
+        this.dis = dis;
+        this.dos = dos;
+        this.broker = broker;
+    }
+    @Override
+    public void run(){
+        try{           
+            VideoFile temp = (VideoFile) ois.readObject();
+            broker.videos.put(temp.getChannelName(), temp);            
+            
+            for(int i=0; i<temp.getHashtagsSize(); i++){
+                broker.videos.put(temp.getHashtag(i), temp);             
+            }
+
+            for (String i: broker.videos.keySet()){
+                System.out.println(i + ", " + broker.videos.get(i));       
+            }
+        }
+        catch(Exception e){
+            //e.printStackTrace();
+            System.err.println(e);
+        }
+    }
+}
+
+class PublisherHandler2 extends Thread{
+    final ObjectInputStream ois;
+    final ObjectOutputStream oos;
+    final DataInputStream dis;
+    final DataOutputStream dos;
+    final Socket publisherSocket;
+    final Broker broker;
+
+    public PublisherHandler2(Socket s, ObjectInputStream ois, ObjectOutputStream oos, DataInputStream dis, DataOutputStream dos, Broker broker){
+        
+        this.publisherSocket = s;
+        this.ois = ois;
+        this.oos = oos;
+        this.dis = dis;
+        this.dos = dos;
+        this.broker = broker;
+    }
+    @Override
+    public void run(){
+        try{           
+            // VideoFile temp = (VideoFile) ois.readObject();
+            // broker.videos.put(temp.getChannelName(), temp);            
+            
+            // for(int i=0; i<temp.getHashtagsSize(); i++){
+            //     broker.videos.put(temp.getHashtag(i), temp);             
+            // }
+            String toRemove = dis.readUTF();
+
+            for (String key: broker.videos.keySet()){
+                if(broker.videos.get(key).getVideoName() == toRemove){
+                    broker.videos.remove(key);
+                }
+            }
+
+        }
+        catch(Exception e){
             e.printStackTrace();
         }
     }

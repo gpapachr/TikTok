@@ -1,7 +1,8 @@
 import java.util.*;
-import java.io.File;
+import java.io.*;
+import java.net.*;
 
-public class VideoFile {
+public class VideoFile implements Serializable{
     private String videoName;
     private String channelName;
     private String dateCreated;
@@ -14,8 +15,9 @@ public class VideoFile {
     private String path;
 
 
-    VideoFile(String s) {
+    VideoFile(String s,String name) {
         this.path = s;
+        this.videoName = name;
         File video = new File(path);
         //this.length = getVideoLength(video);
     }
@@ -28,10 +30,8 @@ public class VideoFile {
         this.dateCreated = dateCreated;
     }
 
-    public void setAssociatedHashtags(ArrayList<String> ah) {
-        for (int i = 0; i < ah.size(); i++) {
-            associatedHashtags.add(ah.get(i));
-        }
+    public void setAssociatedHashtags(String ah) {
+        associatedHashtags.add(ah);        
     }
 
     public void setVideoName(String videoName) {
@@ -47,6 +47,22 @@ public class VideoFile {
         for(int i=0; i < chunks.size(); i++){
             videoFileChunk.add(chunks.get(i));
         }
+    }
+
+    public String getChannelName() {
+        return channelName;
+    }
+
+    public int getHashtagsSize() {
+        return associatedHashtags.size();
+    }
+
+    public String getHashtag(int i) {
+        return associatedHashtags.get(i);
+    }
+
+    public String getVideoName() {
+        return videoName;
     }
 
     
@@ -74,9 +90,7 @@ public class VideoFile {
 
 
 
-  /*  public String getVideoName() {
-        return videoName;
-    }
+  /*  
 
     
 
