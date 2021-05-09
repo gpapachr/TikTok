@@ -64,9 +64,9 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
         try{
             mode = 3;
             connect();
-            dos = new DataOutputStream(socket.getOutputStream());
-            dos.writeUTF(videoToDelete);
-            dos.writeUTF(channelName.getChannelName());
+            oos = new ObjectOutputStream(socket.getOutputStream());
+            oos.writeObject(videoToDelete);
+            oos.writeObject(channelName.getChannelName());
             try{
                 dis.readUTF();
             }

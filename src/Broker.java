@@ -433,8 +433,8 @@ class PublisherHandler2 extends Thread{
     @Override
     public void run(){
         try{           
-            String video = dis.readUTF();
-            String channel = dis.readUTF();
+            String video = (String) ois.readObject();
+            String channel = (String) ois.readObject();
 
             System.out.println("Deleting.....");
             broker.videos.deleteValue(video, channel);
