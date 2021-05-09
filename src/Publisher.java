@@ -7,11 +7,11 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
     private String address;
     private int port;
     private transient Socket socket = null;
-    private static int mode = -1;
-    private static String videoName;
 
-    private ArrayList<VideoFile> videos = new ArrayList<VideoFile>();
-    private ArrayList<String> hashtags = new ArrayList<String>();
+    private static int mode = -1;
+    private static String videoToDelete;
+
+    private Hashmap data = new Hashmap();
     
     private ObjectOutputStream  oos = null;
     private DataOutputStream dos;
@@ -26,7 +26,6 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
     }
 
     public void init(int port) {
-        videos = new ArrayList<VideoFile>();
         this.port = port;
     }
 
@@ -65,7 +64,13 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
         try{
             mode = 3;
             connect();
-            dos.writeUTF(videoName);
+            dos = new DataOutputStream(socket.getOutputStream());
+            dos.writeUTF(videoToDelete);
+            dos.writeUTF(channelName.getChannelName());
+            try{
+                dis.readUTF();
+            }
+            catch(Exception e){}
             disconnect();
         }
         catch(Exception e){
@@ -74,28 +79,17 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
     }
 
     public void removeVideo(String name){
-        for (int i =0; i<videos.size(); i++){
-            if(videos.get(i).getVideoName() == name){
-                videos.remove(i);
-                hashtags.clear();
-                break;                
-            }
-        }
-        for(int i = 0; i<videos.size(); i++){
-            for(int j = 0; j<videos.get(i).getHashtagsSize(); j++){
-                addHashTag(videos.get(i).getHashtag(j));
-            }
-        }
-        videoName = name;
+        data.deleteValue(name, channelName.getChannelName());
+        videoToDelete = name;
         updateNodes();
     }
 
     public void addHashTag(String s) {
-        hashtags.add(s);
+        
     }
 
     public void removeHashTag(String s) {
-        hashtags.remove(s);
+        
     }
 
     public void getBrokerList() {
@@ -111,9 +105,8 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
             generateChunks(path, name, hashtag);
     
             for(int i = 0; i<vf.getHashtagsSize(); i++){
-                addHashTag(vf.getHashtag(i));
+                data.addNew(vf.getHashtag(i), vf);
             }
-            videos.add(vf);
             mode = 2;
             connect();
             oos = new ObjectOutputStream((socket.getOutputStream()));

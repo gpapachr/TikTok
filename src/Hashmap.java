@@ -44,4 +44,19 @@ public class Hashmap{
             System.out.print("\n");
         }
     }
+
+    public void deleteValue(String videoName, String channel){
+        for (String key : videos.keySet()){
+            for(int i = 0; i < videos.get(key).size(); i++){
+                if(videos.get(key).get(i).getVideoName().equals(videoName)){
+                    if(videos.get(key).get(i).getChannelName() == channel){
+                        videos.get(key).remove(i);
+                        if(videos.get(key)==null){
+                            videos.remove(key);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
