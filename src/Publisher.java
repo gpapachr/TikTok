@@ -12,10 +12,10 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
 
     private ArrayList<VideoFile> videos = new ArrayList<VideoFile>();
     private ArrayList<String> hashtags = new ArrayList<String>();
-    private HashMap<String, VideoFile> dict = new HashMap<String, VideoFile>();
     
     private ObjectOutputStream  oos = null;
     private DataOutputStream dos;
+    private DataInputStream dis;
     
     private ArrayList<byte[]> chunks = new ArrayList<byte[]>();
     private transient VideoFile vf = null;
@@ -38,10 +38,12 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
         try{
             address = "localhost";
             socket = new Socket(address, port);
-            System.out.println("Socket= " + socket);
+            System.out.println("Socket= " + socket + "\n");
 
             dos = new DataOutputStream(socket.getOutputStream());
             dos.writeInt(mode);
+
+            dis = new DataInputStream(socket.getInputStream());
         }
         catch(Exception e){
             e.printStackTrace();
@@ -115,7 +117,11 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
             mode = 2;
             connect();
             oos = new ObjectOutputStream((socket.getOutputStream()));
-            oos.writeObject(vf);
+            oos.writeObject(vf);            
+            try{
+                dis.readUTF();
+            }
+            catch(Exception e){}
             disconnect();
         }
         catch(Exception e){
@@ -133,13 +139,13 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
     
     public void generateChunks(String path, String name, String hashtag) {
         vf = new VideoFile(path, name);
+        vf.setChannelName(channelName.getChannelName());
         vf.setAssociatedHashtags(hashtag);
         Mp4Parse mp = new Mp4Parse(path);
         
         chunks = mp.parse();
         vf.setVideoFileChunk(chunks);
     }
-
     public static void main(String args[]) throws Exception{
         ChannelName channel = new ChannelName(args[1]);
         Publisher publisher = new Publisher(Integer.parseInt(args[0]), channel);

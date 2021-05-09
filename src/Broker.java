@@ -23,7 +23,8 @@ public class Broker implements BrokerInterface, Node, Serializable{
     private DataInputStream dis = null;
     private DataOutputStream dos = null;
 
-    protected HashMap<String, VideoFile> videos = new HashMap<String, VideoFile>();
+    Hashmap videos = new Hashmap();
+    
 
     //-------------------------
     
@@ -256,7 +257,8 @@ public class Broker implements BrokerInterface, Node, Serializable{
                         t = new ClientHandler(socket, ois, oos, dis, dos, brokers);
                         System.out.println("Assigning new thread for this client: " + t.getId());
                         t.start();
-
+                        
+                        break;
                     case 2: // publisher uploads new video
                         System.out.println("A new publisher is connected : " + socket);
                         ois = new ObjectInputStream(socket.getInputStream());
@@ -265,17 +267,23 @@ public class Broker implements BrokerInterface, Node, Serializable{
                         dos = new DataOutputStream(socket.getOutputStream());
 
                         t = new PublisherHandler1(socket, ois, oos, dis, dos, this);
-                        System.out.println("Assigning new thread for this client: " + t.getId());
+                        System.out.println("Assigning new thread for this publisher: " + t.getId());
                         t.start();
+                        while(t.isAlive()){
+                            //wait
+                        }
+                        socket.close();
+                        break;
                     case 3: // publisher removes video - updates video map
-                    System.out.println("A new publisher is connected : " + socket);
-                    ois = new ObjectInputStream(socket.getInputStream());
-                    oos = new ObjectOutputStream(socket.getOutputStream());
-                    dis = new DataInputStream(socket.getInputStream());
-                    dos = new DataOutputStream(socket.getOutputStream());
-                    t = new PublisherHandler2(socket, ois, oos, dis, dos, this);
-                    System.out.println("Assigning new thread for this client: " + t.getId());
-                    t.start();
+                        System.out.println("A new publisher is connected : " + socket);
+                        ois = new ObjectInputStream(socket.getInputStream());
+                        oos = new ObjectOutputStream(socket.getOutputStream());
+                        dis = new DataInputStream(socket.getInputStream());
+                        dos = new DataOutputStream(socket.getOutputStream());
+                        t = new PublisherHandler2(socket, ois, oos, dis, dos, this);
+                        System.out.println("Assigning new thread for this publisher: " + t.getId());
+                        t.start();
+                        break;
                 }                
             }
             catch (Exception e){
@@ -379,17 +387,19 @@ class PublisherHandler1 extends Thread{
     }
     @Override
     public void run(){
-        try{           
+        try{
             VideoFile temp = (VideoFile) ois.readObject();
-            broker.videos.put(temp.getChannelName(), temp);            
+
+            broker.videos.addNew(temp.getChannelName(), temp);           
             
+            System.out.println("\n-------------Videos--------------\n");
             for(int i=0; i<temp.getHashtagsSize(); i++){
-                broker.videos.put(temp.getHashtag(i), temp);             
+                broker.videos.addNew(temp.getHashtag(i), temp);          
             }
 
-            for (String i: broker.videos.keySet()){
-                System.out.println(i + ", " + broker.videos.get(i));       
-            }
+            broker.videos.printMap();
+            
+            dos.writeUTF("done");
         }
         catch(Exception e){
             //e.printStackTrace();
@@ -424,13 +434,13 @@ class PublisherHandler2 extends Thread{
             // for(int i=0; i<temp.getHashtagsSize(); i++){
             //     broker.videos.put(temp.getHashtag(i), temp);             
             // }
-            String toRemove = dis.readUTF();
+            // String toRemove = dis.readUTF();
 
-            for (String key: broker.videos.keySet()){
-                if(broker.videos.get(key).getVideoName() == toRemove){
-                    broker.videos.remove(key);
-                }
-            }
+            // for (String key: broker.videos.keySet()){
+            //     if(broker.videos.get(key).getVideoName() == toRemove){
+            //         broker.videos.remove(key);
+            //     }
+            // }
 
         }
         catch(Exception e){
