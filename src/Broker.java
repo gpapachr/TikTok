@@ -326,7 +326,7 @@ public class Broker implements BrokerInterface, Node, Serializable{
     }
 }
 
-class ClientHandler extends Thread{
+class ClientHandler1 extends Thread{
     
     final ObjectInputStream ois;
     final ObjectOutputStream oos;
@@ -335,7 +335,7 @@ class ClientHandler extends Thread{
     final Socket clientSocket;
     final List<Broker> temp_brokers = new ArrayList<Broker>();
 
-    public ClientHandler(Socket s, ObjectInputStream ois, ObjectOutputStream oos, DataInputStream dis, DataOutputStream dos, List<Broker> b){
+    public ClientHandler1(Socket s, ObjectInputStream ois, ObjectOutputStream oos, DataInputStream dis, DataOutputStream dos, List<Broker> b){
         
         this.clientSocket = s;
         this.ois = ois;
@@ -351,7 +351,7 @@ class ClientHandler extends Thread{
     @Override
     public void run(){
         
-        try{
+       try{
             dos.writeInt(temp_brokers.size());
             for(int i=0; i<temp_brokers.size(); i++){
                 oos.writeObject(temp_brokers.get(i));
@@ -368,6 +368,68 @@ class ClientHandler extends Thread{
         }
         catch(Exception e){
             System.out.println(e);
+            e.printStackTrace();
+        }
+    }
+}
+class ClientHandler2 extends Thread{
+    
+    final ObjectInputStream ois;
+    final ObjectOutputStream oos;
+    final DataInputStream dis;
+    final DataOutputStream dos;
+    final Socket clientSocket;
+    final Broker broker;
+
+    public ClientHandler2(Socket s, ObjectInputStream ois, ObjectOutputStream oos, DataInputStream dis, DataOutputStream dos, Broker broker){
+            
+        this.clientSocket = s;
+        this.ois = ois;
+        this.oos = oos;
+        this.dis = dis;
+        this.dos = dos;
+        this.broker = broker;
+
+    }
+
+    @Override
+    public void run(){
+        
+        try{
+            String channel = (String) ois.readObject();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+}
+
+class ClientHandler3 extends Thread{
+    
+    final ObjectInputStream ois;
+    final ObjectOutputStream oos;
+    final DataInputStream dis;
+    final DataOutputStream dos;
+    final Socket clientSocket;
+    final Broker broker;
+
+    public ClientHandler3(Socket s, ObjectInputStream ois, ObjectOutputStream oos, DataInputStream dis, DataOutputStream dos, Broker broker){
+            
+        this.clientSocket = s;
+        this.ois = ois;
+        this.oos = oos;
+        this.dis = dis;
+        this.dos = dos;
+        this.broker = broker;
+    }
+
+    @Override
+    public void run(){
+        
+        try{
+            String hashtag = (String) ois.readObject();
+        }
+        catch(Exception e){
             e.printStackTrace();
         }
     }

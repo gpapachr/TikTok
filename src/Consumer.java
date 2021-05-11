@@ -92,5 +92,48 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
 
     public static void main(String args[]) throws Exception{
         Consumer consumer = new Consumer(Integer.parseInt(args[0]));
+        boolean logout = false;
+        Scanner sc = new Scanner(System.in);
+        
+        while(!logout){
+            System.out.println("---------Menu---------");
+            System.out.println("1 - Search Video");
+            System.out.println("0 - Exit");
+
+            int response = sc.nextInt();
+
+            while(response != 0 && response != 1){
+                System.out.println("Invalid Input!");
+                response = sc.nextInt();
+            }
+
+            try{
+                switch(response){
+                    case 0:
+                        logout = true;
+                        break;
+                    case 1:
+                        System.out.println("Press 1 for Channel Name, 2 for Hashtag");
+                        int response2 = sc.nextInt();
+
+                        while(response2 != 1 && response2 != 2){
+                            System.out.println("Invalid Input!");
+                            response2 = sc.nextInt();
+                        }
+                        if(response2 == 1){
+                            System.out.println("Give Channel Name");
+                            String response3 = sc.next();
+                        } 
+                        else{
+                            System.out.println("Give Hashtag");
+                            String response3 = sc.next();
+                        }
+                        break;
+                }
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+        }    
     }
 }
