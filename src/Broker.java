@@ -254,7 +254,7 @@ public class Broker implements BrokerInterface, Node, Serializable{
                         dis = new DataInputStream(socket.getInputStream());
                         dos = new DataOutputStream(socket.getOutputStream());
                         
-                        t = new ClientHandler(socket, ois, oos, dis, dos, brokers);
+                        t = new ClientHandler1(socket, ois, oos, dis, dos, brokers);
                         System.out.println("Assigning new thread for this client: " + t.getId());
                         t.start();
                         
@@ -281,7 +281,7 @@ public class Broker implements BrokerInterface, Node, Serializable{
                         dis = new DataInputStream(socket.getInputStream());
                         dos = new DataOutputStream(socket.getOutputStream());
 
-                        t = new PublisherHandler1(socket, ois, oos, dis, dos, this);
+                        t = new PublisherHandler2(socket, ois, oos, dis, dos, this);
                         System.out.println("Assigning new thread for this publisher: " + t.getId());
                         t.start();
                         while(t.isAlive()){
@@ -462,10 +462,6 @@ class PublisherHandler1 extends Thread{
             for(int i=0; i<temp.getHashtagsSize(); i++){
                 broker.videos.addNew(temp.getHashtag(i), temp);          
             }
-
-            System.out.println("\n-------------Videos--------------\n");
-            broker.videos.printMap();
-            
             dos.writeUTF("done");
         }
         catch(Exception e){
@@ -499,11 +495,7 @@ class PublisherHandler2 extends Thread{
             String channel = (String) ois.readObject();
 
             System.out.println("Deleting.....");
-            broker.videos.deleteValue(video, channel);
-
-            System.out.println("\n-------------Videos--------------\n");
-            broker.videos.printMap();
-            
+            broker.videos.deleteValue(video, channel);            
             dos.writeUTF("done");
         }
         catch(Exception e){

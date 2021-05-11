@@ -78,9 +78,9 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
         }
     }
 
-    public void removeVideo(String name){
-        data.deleteValue(name, channelName.getChannelName());
-        videoToDelete = name;
+    public void removeVideo(String Videoname){
+        data.deleteValue(Videoname, channelName.getChannelName());
+        videoToDelete = Videoname;
         updateNodes();
     }
 
@@ -172,11 +172,16 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
                         System.out.println("Video Upload completed!");
                         break;
                     case 2:
-                        System.out.println("Give Video name to remove");
-                        name = sc.next();
-                        publisher.removeVideo(name);
-                        System.out.println("Video deleted");
-                        break;                    
+                        try{
+                            System.out.println("Give Video name to remove");
+                            name = sc.next();
+                            publisher.removeVideo(name);
+                            System.out.println("Video deleted");
+                        }   
+                        catch(Exception e){
+                            System.out.println("Video not found");
+                        }
+                        break;
                 }
             }
             catch(Exception e){
