@@ -3,6 +3,8 @@ import java.util.*;
 import java.io.*;
 
 public class Publisher extends Thread implements PublisherInterface, Node, Serializable{
+    
+    
     private ChannelName channelName;
     private String address;
     private int port;

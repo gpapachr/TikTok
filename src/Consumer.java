@@ -5,8 +5,12 @@ import java.util.*;
 public class Consumer implements ConsumerInterface, Node, Serializable{
 
     //fields
+    private ChannelName channelName;
     private transient Socket socket = null;
     private ObjectInputStream  ois = null;
+    private ObjectOutputStream  oos = null;
+    private DataOutputStream dos;
+    private DataInputStream dis;
     private String address;
     private int port;
     private Scanner sc;
@@ -15,9 +19,9 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
     
     //methods
 
-    public Consumer(int port){
+    public Consumer(int port, ChannelName channelName){
+        this.channelName = channelName;
         init(port);
-        connect();
     }
 
 
@@ -47,12 +51,17 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
 
     public void connect() {
         try{
-            sc = new Scanner(System.in);
+            //sc = new Scanner(System.in);
             address = "localhost";
             socket = new Socket(address, port);
-            System.out.println("Socket= " + socket);
+            System.out.println("Socket= " + socket + "\n");
 
-            ois = new ObjectInputStream((socket.getInputStream()));
+            dos = new DataOutputStream(socket.getOutputStream());
+            dos.writeInt(mode);
+
+            dis = new DataInputStream(socket.getInputStream());
+
+           /* ois = new ObjectInputStream((socket.getInputStream()));
 
             System.out.println("Waiting for server's response");
             Broker temp = (Broker) ois.readObject();
@@ -67,26 +76,31 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
             }
 
             socket.close();
-            System.out.println("Connection closed");
+            System.out.println("Connection closed");*/
         }
         catch(Exception e){
-            System.out.println("connect(): ");
             e.printStackTrace();
         }
-        disconnect();
+        //disconnect();
     }
 
     public void disconnect() {
         try {
-            sc.close();
+            dos.close();
+            oos.close();
+            socket.close();
         }
         catch(Exception e)
         {
-            System.out.println("disconnect(): " + e);
+            e.printStackTrace();  
         }
     }
 
     public void updateNodes() {
+
+    }
+
+    public void searchVideo(String key) {
 
     }
 
@@ -114,19 +128,21 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
                         break;
                     case 1:
                         System.out.println("Press 1 for Channel Name, 2 for Hashtag");
-                        int response2 = sc.nextInt();
+                        int response = sc.nextInt();
 
-                        while(response2 != 1 && response2 != 2){
+                        while(response != 1 && response != 2){
                             System.out.println("Invalid Input!");
-                            response2 = sc.nextInt();
+                            response = sc.nextInt();
                         }
-                        if(response2 == 1){
+                        if(response == 1){
                             System.out.println("Give Channel Name");
-                            String response3 = sc.next();
+                            String response = sc.next();
+                            consumer.searchVideo(response);
                         } 
                         else{
                             System.out.println("Give Hashtag");
-                            String response3 = sc.next();
+                            String response = sc.next();
+                            consumer.searchVideo(response);
                         }
                         break;
                 }

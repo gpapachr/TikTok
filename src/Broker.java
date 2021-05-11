@@ -24,6 +24,7 @@ public class Broker implements BrokerInterface, Node, Serializable{
     private DataOutputStream dos = null;
 
     Hashmap videos = new Hashmap();
+    VideoList videosToReturn = new VideoList();
     
 
     //-------------------------
@@ -380,8 +381,9 @@ class ClientHandler2 extends Thread{
     final DataOutputStream dos;
     final Socket clientSocket;
     final Broker broker;
+    final String key;
 
-    public ClientHandler2(Socket s, ObjectInputStream ois, ObjectOutputStream oos, DataInputStream dis, DataOutputStream dos, Broker broker){
+    public ClientHandler2(Socket s, ObjectInputStream ois, ObjectOutputStream oos, DataInputStream dis, DataOutputStream dos, Broker broker, String key){
             
         this.clientSocket = s;
         this.ois = ois;
@@ -389,6 +391,7 @@ class ClientHandler2 extends Thread{
         this.dis = dis;
         this.dos = dos;
         this.broker = broker;
+        this.key = key;
 
     }
 
@@ -396,7 +399,11 @@ class ClientHandler2 extends Thread{
     public void run(){
         
         try{
-            String channel = (String) ois.readObject();
+            for(String i:videos.keySet()){
+                if(i==key){
+                    
+                }
+            }
         }
         catch(Exception e){
             e.printStackTrace();
@@ -404,36 +411,6 @@ class ClientHandler2 extends Thread{
     }
 }
 
-class ClientHandler3 extends Thread{
-    
-    final ObjectInputStream ois;
-    final ObjectOutputStream oos;
-    final DataInputStream dis;
-    final DataOutputStream dos;
-    final Socket clientSocket;
-    final Broker broker;
-
-    public ClientHandler3(Socket s, ObjectInputStream ois, ObjectOutputStream oos, DataInputStream dis, DataOutputStream dos, Broker broker){
-            
-        this.clientSocket = s;
-        this.ois = ois;
-        this.oos = oos;
-        this.dis = dis;
-        this.dos = dos;
-        this.broker = broker;
-    }
-
-    @Override
-    public void run(){
-        
-        try{
-            String hashtag = (String) ois.readObject();
-        }
-        catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-}
 
 class PublisherHandler1 extends Thread{
     final ObjectInputStream ois;
