@@ -3,6 +3,8 @@ import java.util.HashMap;
 
 public class Hashmap{
     private HashMap<String, ArrayList<VideoFile>> videos = new HashMap<String, ArrayList<VideoFile>>();
+    private VideoList videosToReturn = new VideoList();
+
     Hashmap(){
 
     }
@@ -57,10 +59,7 @@ public class Hashmap{
             for(int i = 0; i < videos.get(key).size(); i++){                                       //gia ola ta soixia stis listes tous
                 if(videos.get(key).get(i).getVideoName().equals(videoName)){                       //an to onoma tou i video sthn lista einai videoname
                     if(videos.get(key).get(i).getChannelName().equals(channel)){                   //an to onoma tou channel tou i video sthn lista einai channel
-                        videos.get(key).remove(i);
-                        if(videos.get(key).isEmpty()){
-                            videos.remove(key);
-                        }                                           
+                        videos.get(key).remove(i);                                          
                     }
                 }
             }
@@ -68,4 +67,15 @@ public class Hashmap{
         printMap();
     }
 
+    public VideoList search(String key){
+        if(contains(key)){
+            for(int i = 0; i < videos.get(key).size(); i++){
+                videosToReturn.addVideo(videos.get(key).get(i));
+            }
+            return videosToReturn;
+        }
+        else{
+            return null;
+        }
+    }
 }

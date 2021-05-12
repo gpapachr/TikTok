@@ -18,10 +18,10 @@ public class Broker implements BrokerInterface, Node, Serializable{
     private List<Consumer> registeredUsers;
     private List<Publisher> registeredPublishers;
 
-    private ObjectInputStream ois = null;
-    private ObjectOutputStream oos = null;
-    private DataInputStream dis = null;
-    private DataOutputStream dos = null;
+    private ObjectInputStream transient ois = null;
+    private ObjectOutputStream transient oos = null;
+    private DataInputStream transient dis = null;
+    private DataOutputStream transient dos = null;
 
     Hashmap videos = new Hashmap();
     VideoList videosToReturn = new VideoList();
@@ -248,17 +248,20 @@ public class Broker implements BrokerInterface, Node, Serializable{
                 DataInputStream typeInput = new DataInputStream(socket.getInputStream());
                 int type = typeInput.readInt();
                 switch(type){
-                    case 1: // is consumer
+                    case 1: // is consumer searching
                         System.out.println("A new client is connected : " + socket);
-                        ois = new ObjectInputStream(socket.getInputStream());
-                        oos = new ObjectOutputStream(socket.getOutputStream());
-                        dis = new DataInputStream(socket.getInputStream());
+                        ois = new ObjectInputStream(socket.getInputStream());                                    
+                        oos = new ObjectOutputStream(socket.getOutputStream());                        
+                        dis = new DataInputStream(socket.getInputStream());                      
                         dos = new DataOutputStream(socket.getOutputStream());
                         
-                        t = new ClientHandler1(socket, ois, oos, dis, dos, brokers);
+                        t = new ClientHandler2(socket, ois, oos, dis, dos, this);
                         System.out.println("Assigning new thread for this client: " + t.getId());
                         t.start();
-                        
+                        while(t.isAlive()){
+                            //wait
+                        }
+                        socket.close();                        
                         break;
                     case 2: // publisher uploads new video
                         System.out.println("A new publisher is connected : " + socket);
@@ -344,6 +347,8 @@ class ClientHandler1 extends Thread{
         this.dis = dis;
         this.dos = dos;
 
+        
+
         for(int i=0; i<b.size(); i++){
             this.temp_brokers.add(b.get(i));
         }
@@ -381,9 +386,8 @@ class ClientHandler2 extends Thread{
     final DataOutputStream dos;
     final Socket clientSocket;
     final Broker broker;
-    final String key;
 
-    public ClientHandler2(Socket s, ObjectInputStream ois, ObjectOutputStream oos, DataInputStream dis, DataOutputStream dos, Broker broker, String key){
+    public ClientHandler2(Socket s, ObjectInputStream ois, ObjectOutputStream oos, DataInputStream dis, DataOutputStream dos, Broker broker){
             
         this.clientSocket = s;
         this.ois = ois;
@@ -391,19 +395,33 @@ class ClientHandler2 extends Thread{
         this.dis = dis;
         this.dos = dos;
         this.broker = broker;
-        this.key = key;
 
+
+        //to be removed
+        VideoFile vf = new VideoFile("test.mp4", "first");
+        vf.setChannelName("giannis");
+        vf.setAssociatedHashtags("aaaaa");
+        broker.videos.addNew("aaaaa", vf);
     }
 
     @Override
-    public void run(){
-        
+    public void run(){        
         try{
-            for(String i:videos.keySet()){
-                if(i==key){
-                    
-                }
+            System.out.println("1");
+            String key = dis.readUTF();
+
+            VideoList temp = broker.videos.search(key);
+            int length = temp.size();
+            System.out.println("2");
+            dos.writeInt(length);
+            System.out.println("for");
+            for(int i = 0; i<length; i++){
+                oos.writeObject(temp.getVideo(i));
             }
+            try{
+                dis.readUTF();
+            }catch(Exception e){}
+            System.out.println("done");
         }
         catch(Exception e){
             e.printStackTrace();

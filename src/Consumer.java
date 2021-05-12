@@ -5,21 +5,22 @@ import java.util.*;
 public class Consumer implements ConsumerInterface, Node, Serializable{
 
     //fields
-    private ChannelName channelName;
+    private String channelName;
     private transient Socket socket = null;
-    private ObjectInputStream  ois = null;
-    private ObjectOutputStream  oos = null;
-    private DataOutputStream dos;
-    private DataInputStream dis;
+    private ObjectInputStream  transient ois = null;
+    private ObjectOutputStream transient oos = null;
+    private DataOutputStream transient dos = null;
+    private DataInputStream transient dis = null;
     private String address;
     private int port;
     private Scanner sc;
+    private static int mode = -1;
 
     private Broker broker = null;
     
     //methods
 
-    public Consumer(int port, ChannelName channelName){
+    public Consumer(int port, String channelName){
         this.channelName = channelName;
         init(port);
     }
@@ -60,8 +61,11 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
             dos.writeInt(mode);
 
             dis = new DataInputStream(socket.getInputStream());
+            //ois = new ObjectInputStream(socket.getInputStream());
+            //oos = new ObjectOutputStream(socket.getOutputStream());
 
-           /* ois = new ObjectInputStream((socket.getInputStream()));
+
+           /* 
 
             System.out.println("Waiting for server's response");
             Broker temp = (Broker) ois.readObject();
@@ -81,12 +85,13 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
         catch(Exception e){
             e.printStackTrace();
         }
-        //disconnect();
     }
 
     public void disconnect() {
         try {
             dos.close();
+            dis.close();
+            ois.close();
             oos.close();
             socket.close();
         }
@@ -101,11 +106,30 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
     }
 
     public void searchVideo(String key) {
+        try {
+            mode = 1;
+            String search_key = key;
+            connect();
+            oos = new ObjectOutputStream(socket.getOutputStream());
+            oos.writeObject(key);
 
+            dos.writeUTF(key);
+            int loop = dis.readInt();
+            VideoList returnedVideos = new VideoList();
+            for (int i=0; i<loop; i++){               
+                VideoFile temp = (VideoFile) ois.readObject();
+                returnedVideos.addVideo(temp);               
+            }
+            dos.writeUTF("done");
+            returnedVideos.print();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String args[]) throws Exception{
-        Consumer consumer = new Consumer(Integer.parseInt(args[0]));
+        Consumer consumer = new Consumer(Integer.parseInt(args[0]), args[1]);
         boolean logout = false;
         Scanner sc = new Scanner(System.in);
         
@@ -127,23 +151,9 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
                         logout = true;
                         break;
                     case 1:
-                        System.out.println("Press 1 for Channel Name, 2 for Hashtag");
-                        int response = sc.nextInt();
-
-                        while(response != 1 && response != 2){
-                            System.out.println("Invalid Input!");
-                            response = sc.nextInt();
-                        }
-                        if(response == 1){
-                            System.out.println("Give Channel Name");
-                            String response = sc.next();
-                            consumer.searchVideo(response);
-                        } 
-                        else{
-                            System.out.println("Give Hashtag");
-                            String response = sc.next();
-                            consumer.searchVideo(response);
-                        }
+                        System.out.println("Give hashtag or channel name to search");
+                        String key = sc.next();
+                        consumer.searchVideo(key);                        
                         break;
                 }
             }

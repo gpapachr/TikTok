@@ -16,6 +16,21 @@ public class VideoList{
     }
 
     public boolean isEmpty(){
-        return videos.isEmpty;
+        return videos.isEmpty();
+    }
+
+    public int size(){
+        return videos.size();
+    }
+
+    public void print(){
+        System.out.println("\n-----------Videos Found---------\n");
+        if(isEmpty()){
+            System.out.println("null");
+        }
+        for(int i=0; i<videos.size(); i++){
+            System.out.println(videos.get(i).getVideoName() + " by: " + videos.get(i).getChannelName());
+        }
+        System.out.println();
     }
 }
