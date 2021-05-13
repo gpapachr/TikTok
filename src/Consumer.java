@@ -7,13 +7,12 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
     //fields
     private String channelName;
     private transient Socket socket = null;
-    private ObjectInputStream  transient ois = null;
-    private ObjectOutputStream transient oos = null;
-    private DataOutputStream transient dos = null;
-    private DataInputStream transient dis = null;
+    private transient ObjectInputStream ois = null;
+    private transient ObjectOutputStream oos = null;
+    private transient DataOutputStream dos = null;
+    private transient DataInputStream dis = null;
     private String address;
     private int port;
-    private Scanner sc;
     private static int mode = -1;
 
     private Broker broker = null;

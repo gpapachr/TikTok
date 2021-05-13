@@ -18,10 +18,10 @@ public class Broker implements BrokerInterface, Node, Serializable{
     private List<Consumer> registeredUsers;
     private List<Publisher> registeredPublishers;
 
-    private ObjectInputStream transient ois = null;
-    private ObjectOutputStream transient oos = null;
-    private DataInputStream transient dis = null;
-    private DataOutputStream transient dos = null;
+    private transient ObjectInputStream ois = null;
+    private transient ObjectOutputStream oos = null;
+    private transient DataInputStream dis = null;
+    private transient DataOutputStream dos = null;
 
     Hashmap videos = new Hashmap();
     VideoList videosToReturn = new VideoList();

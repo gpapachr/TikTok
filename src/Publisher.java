@@ -15,9 +15,9 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
 
     private Hashmap data = new Hashmap();
     
-    private ObjectOutputStream transient oos = null;
-    private DataOutputStream transient dos;
-    private DataInputStream transient dis;
+    private transient ObjectOutputStream oos = null;
+    private transient DataOutputStream dos;
+    private transient DataInputStream dis;
     
     private ArrayList<byte[]> chunks = new ArrayList<byte[]>();
     private transient VideoFile vf = null;
