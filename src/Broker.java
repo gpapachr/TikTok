@@ -398,22 +398,23 @@ class ClientHandler2 extends Thread{
 
 
         //to be removed
-        VideoFile vf = new VideoFile("test.mp4", "first");
+        /*VideoFile vf = new VideoFile("test.mp4", "first");
         vf.setChannelName("giannis");
         vf.setAssociatedHashtags("aaaaa");
-        broker.videos.addNew("aaaaa", vf);
+        broker.videos.addNew("aaaaa", vf);*/
     }
 
     @Override
     public void run(){        
         try{
             System.out.println("1");
-            String key = dis.readUTF();
-
+            //String key = dis.readUTF();
+            String key = (String) ois.readObject();
             VideoList temp = broker.videos.search(key);
             int length = temp.size();
             System.out.println("2");
-            dos.writeInt(length);
+            //dos.writeInt(length);
+            oos.writeObject(length);
             System.out.println("for");
             for(int i = 0; i<length; i++){
                 oos.writeObject(temp.getVideo(i));

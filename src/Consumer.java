@@ -13,6 +13,7 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
     private transient DataInputStream dis = null;
     private String address;
     private int port;
+    private Scanner sc;
     private static int mode = -1;
 
     private Broker broker = null;
@@ -111,9 +112,11 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
             connect();
             oos = new ObjectOutputStream(socket.getOutputStream());
             oos.writeObject(key);
-
-            dos.writeUTF(key);
-            int loop = dis.readInt();
+            //dos.writeUTF(key);
+            //int loop = dis.readInt();
+            ois = new ObjectInputStream(socket.getInputStream());
+            int loop = (int) ois.readObject();
+            System.out.println(loop);
             VideoList returnedVideos = new VideoList();
             for (int i=0; i<loop; i++){               
                 VideoFile temp = (VideoFile) ois.readObject();
