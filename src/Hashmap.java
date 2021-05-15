@@ -78,4 +78,8 @@ public class Hashmap{
             return null;
         }
     }
+
+    public void overNout(){
+        videosToReturn.clear();
+    }
 }

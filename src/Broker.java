@@ -409,6 +409,7 @@ class ClientHandler2 extends Thread{
             //String key = dis.readUTF();
             String key = (String) ois.readObject();
             VideoList temp = broker.videos.search(key);
+
             int length = temp.size();
             System.out.println("2");
             //dos.writeInt(length);
@@ -421,6 +422,7 @@ class ClientHandler2 extends Thread{
                 dis.readUTF();
             }catch(Exception e){}
             System.out.println("done");
+            broker.videos.overNout();
         }
         catch(Exception e){
             e.printStackTrace();

@@ -36,6 +36,7 @@ public class Mp4Parse{
                chunks.add(outputStream.toByteArray());
                i++;
                streamSize = 0;
+               outputStream.reset();
             }  
             read = inputStream.read();
             if (i==parts && read==-1){

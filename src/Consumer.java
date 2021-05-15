@@ -141,7 +141,7 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
 
                     System.out.println("Chunks to be returned: " + returnedVideos.getVideo(i).chunksNumber());
 
-                    String videoFileName = returnedVideos.getVideo(i).getPath().substring(0, returnedVideos.getVideo(i).getPath().lastIndexOf(".")); // Name of the videoFile without extension
+                    String videoFileName = returnedVideos.getVideo(i).getVideoName(); // Name of the videoFile without extension
                     File splitFile = new File("./chunks/"+ videoFileName);//Destination folder to save.
                     if (!splitFile.exists()) {
                         splitFile.mkdirs();
@@ -150,7 +150,7 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
 
                     
                     for (int j=0; j<returnedVideos.getVideo(i).chunksNumber(); j++){
-                        videoFile = splitFile.getAbsolutePath() + "-" + String.format("%02d", j) +"_"+ "test";
+                        videoFile = "./chunks/" + videoFileName + "/" + String.format("%02d", j) +"_"+ videoFileName;
                         System.out.println("File created: " + videoFile);
                         os = new FileOutputStream(videoFile);
                         os.write(returnedVideos.getVideo(i).getVideoFileChunk(j));
