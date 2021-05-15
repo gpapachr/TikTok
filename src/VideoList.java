@@ -33,4 +33,8 @@ public class VideoList{
         }
         System.out.println();
     }
+
+    public void clear(){
+        videos.clear();
+    }
 }

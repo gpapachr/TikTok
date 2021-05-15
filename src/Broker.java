@@ -23,9 +23,7 @@ public class Broker implements BrokerInterface, Node, Serializable{
     private transient DataInputStream dis = null;
     private transient DataOutputStream dos = null;
 
-    Hashmap videos = new Hashmap();
-    VideoList videosToReturn = new VideoList();
-    
+    Hashmap videos = new Hashmap();    
 
     //-------------------------
     

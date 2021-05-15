@@ -1,5 +1,8 @@
 import java.io.*;
 import java.net.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class Consumer implements ConsumerInterface, Node, Serializable{
@@ -108,7 +111,6 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
     public void searchVideo(String key) {
         try {
             mode = 1;
-            String search_key = key;
             connect();
             oos = new ObjectOutputStream(socket.getOutputStream());
             oos.writeObject(key);
@@ -124,6 +126,40 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
             }
             dos.writeUTF("done");
             returnedVideos.print();
+
+            System.out.println("Choose video by its name: ");
+            Scanner temp = new Scanner(System.in);
+
+            String response = temp.next();
+
+            for (int i=0; i<returnedVideos.size(); i++){
+
+                System.out.println(returnedVideos.getVideo(i).getVideoName() + " == " + response + "?");
+                if(returnedVideos.getVideo(i).getVideoName().equalsIgnoreCase(response)){
+                    String videoFile;
+                    OutputStream os;
+
+                    System.out.println("Chunks to be returned: " + returnedVideos.getVideo(i).chunksNumber());
+
+                    String videoFileName = returnedVideos.getVideo(i).getPath().substring(0, returnedVideos.getVideo(i).getPath().lastIndexOf(".")); // Name of the videoFile without extension
+                    File splitFile = new File("./chunks/"+ videoFileName);//Destination folder to save.
+                    if (!splitFile.exists()) {
+                        splitFile.mkdirs();
+                        System.out.println("Directory Created -> "+ splitFile.getAbsolutePath());
+                    }
+
+                    
+                    for (int j=0; j<returnedVideos.getVideo(i).chunksNumber(); j++){
+                        videoFile = splitFile.getAbsolutePath() + "-" + String.format("%02d", j) +"_"+ "test";
+                        System.out.println("File created: " + videoFile);
+                        os = new FileOutputStream(videoFile);
+                        os.write(returnedVideos.getVideo(i).getVideoFileChunk(j));
+                        os.close();
+                    }
+                    break;                   
+                }
+            }
+            returnedVideos.clear();
 
         } catch (Exception e) {
             e.printStackTrace();

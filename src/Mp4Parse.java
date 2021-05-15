@@ -4,7 +4,7 @@ import java.util.*;
 public class Mp4Parse{
    
    private File file;
-   private int i = 0;
+   
    private InputStream inputStream;
    private ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
    private int chunkSize = 512*1024;
@@ -25,27 +25,41 @@ public class Mp4Parse{
    }
 
 
-   public ArrayList<byte[]> parse(){
-      try {           
-         while ((read = inputStream.read()) != -1) {
+   public void parse(){
+      int i = 1;
+      try {       
+         read = inputStream.read();
+         while ((read) != -1) {
+            outputStream.write(read);
+            streamSize++;
             if (chunkSize == streamSize && i!=parts) {                     
                chunks.add(outputStream.toByteArray());
                i++;
-            }                    
-            outputStream.write(read);
-            streamSize++;
+               streamSize = 0;
+            }  
+            read = inputStream.read();
+            if (i==parts && read==-1){
+               chunks.add(outputStream.toByteArray());
+            }
          }
+
+         System.out.println("Chunks splitted: " + chunks.size());
 
          inputStream.close();
          outputStream.close();
-         System.out.println("Total files Split ->"+ parts);
-         return chunks;
       } 
       catch (Exception e) {
          e.printStackTrace();
-         return null;
-      }
-      
+      }      
+   }
+
+   public byte[] getChunk(int i){
+      return chunks.get(i);
+   }
+
+
+   public int getChunksNumber() {
+      return chunks.size();
    }
 }
 

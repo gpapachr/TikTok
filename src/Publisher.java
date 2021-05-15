@@ -138,7 +138,12 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
         vf.setAssociatedHashtags(hashtag);
         Mp4Parse mp = new Mp4Parse(path);
         
-        chunks = mp.parse();
+        mp.parse();
+        for(int i=0; i<mp.getChunksNumber(); i++){
+            chunks.add(mp.getChunk(i));
+        }
+        System.out.println("Shit happened: " + chunks.size());
+        
         vf.setVideoFileChunk(chunks);
     }
     public static void main(String args[]) throws Exception{

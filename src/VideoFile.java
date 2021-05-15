@@ -38,8 +38,8 @@ public class VideoFile implements Serializable{
         this.videoName = videoName;
     }
 
-    public byte[] getVideoFileChunk() {
-        return null;
+    public byte[] getVideoFileChunk(int i) {
+        return videoFileChunk.get(i);
     }
 
     public void setVideoFileChunk(ArrayList<byte[]> chunks) {
@@ -47,6 +47,10 @@ public class VideoFile implements Serializable{
         for(int i=0; i < chunks.size(); i++){
             videoFileChunk.add(chunks.get(i));
         }
+    }
+
+    public int chunksNumber(){
+        return videoFileChunk.size();
     }
 
     public String getChannelName() {
@@ -63,6 +67,10 @@ public class VideoFile implements Serializable{
 
     public String getVideoName() {
         return videoName;
+    }
+
+    public String getPath() {
+        return path;
     }
 
     
