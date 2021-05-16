@@ -37,7 +37,7 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
 
     public void connect() { // mode: 1-consumer, 2-publisher upload, 3-publisher remove video
         try{
-            address = "localhost";
+            address = Inet4Address.getLocalHost().getHostAddress();
             socket = new Socket(address, port);
             System.out.println("Socket= " + socket + "\n");
 
@@ -145,6 +145,8 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
         System.out.println("Shit happened: " + chunks.size());
         
         vf.setVideoFileChunk(chunks);
+        mp.delete();
+        chunks.clear();
     }
     public static void main(String args[]) throws Exception{
         ChannelName channel = new ChannelName(args[1]);

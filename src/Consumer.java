@@ -1,12 +1,10 @@
 import java.io.*;
 import java.net.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.*;
 
 public class Consumer implements ConsumerInterface, Node, Serializable{
-
+    
     //fields
     private String channelName;
     private transient Socket socket = null;
@@ -39,7 +37,43 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
 
     }
 
-    public void playData(String s, Value v) {
+    public void playData(String s, VideoFile v) {
+        try {
+            File splitFiles = new File(s);// get all files which are to be join
+            if (splitFiles.exists()) {
+                File[] files = splitFiles.getAbsoluteFile().listFiles();
+                Arrays.sort(files);
+                if (files.length != 0) {
+                    System.out.println("Total files to be join: "+ files.length);
+
+                String joinFileName = v.getVideoName() + ".mp4";
+                System.out.println("Join file created with name -> "+ joinFileName);
+                File fileJoinPath = new File(s);// merge video files saved in this location
+
+                OutputStream outputStream = new FileOutputStream(s +"/"+ v.getVideoName() + ".mp4");
+
+                for (File file : files) {
+                    System.out.println("Reading the file -> "+ file.getName());
+                    InputStream inputStream = new FileInputStream(file);
+
+                    int readByte = 0;
+                    while((readByte = inputStream.read()) != -1) {
+                        outputStream.write(readByte);
+                    }
+                    inputStream.close();
+                }
+
+                System.out.println("Join file saved at -> "+ fileJoinPath.getAbsolutePath() +"/"+ joinFileName);
+                outputStream.close();
+            } else {
+                System.err.println("No Files exist in path -> "+ splitFiles.getAbsolutePath());
+            }
+        } else {
+            System.err.println("This path doesn't exist -> "+ splitFiles.getAbsolutePath());
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
 
     }
 
@@ -47,6 +81,7 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
 
     public void init(int port) {
         this.port = port;
+        address = Inet4Address.getLocalHost().getHostAddress();
     }
 
     public List<Broker> getBrokers() {
@@ -56,7 +91,6 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
     public void connect() {
         try{
             //sc = new Scanner(System.in);
-            address = "localhost";
             socket = new Socket(address, port);
             System.out.println("Socket= " + socket + "\n");
 
@@ -122,7 +156,10 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
             VideoList returnedVideos = new VideoList();
             for (int i=0; i<loop; i++){               
                 VideoFile temp = (VideoFile) ois.readObject();
-                returnedVideos.addVideo(temp);               
+
+                if(!temp.getChannelName().equals(this.channelName)){
+                    returnedVideos.addVideo(temp);
+                }
             }
             dos.writeUTF("done");
             returnedVideos.print();
@@ -150,17 +187,18 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
 
                     
                     for (int j=0; j<returnedVideos.getVideo(i).chunksNumber(); j++){
-                        videoFile = "./chunks/" + videoFileName + "/" + String.format("%02d", j) +"_"+ videoFileName;
+                        videoFile = "./chunks/" + videoFileName + "/" + String.format("%02d", j) +"_"+ videoFileName + ".mp4";
                         System.out.println("File created: " + videoFile);
                         os = new FileOutputStream(videoFile);
                         os.write(returnedVideos.getVideo(i).getVideoFileChunk(j));
                         os.close();
                     }
+
+                    playData("./chunks/"+ videoFileName, returnedVideos.getVideo(i));
                     break;                   
                 }
             }
             returnedVideos.clear();
-
         } catch (Exception e) {
             e.printStackTrace();
         }

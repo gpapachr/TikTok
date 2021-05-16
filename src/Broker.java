@@ -97,7 +97,7 @@ public class Broker implements BrokerInterface, Node, Serializable{
         switch(port){
             case 5000:
                 try{
-                    address = "localhost";
+                    address = Inet4Address.getLocalHost().getHostAddress();
                     brokerSocket = new Socket(address, 6000);
                     DataOutputStream dos = new DataOutputStream(brokerSocket.getOutputStream());
                     dos.writeUTF("update_nodes");
@@ -115,7 +115,7 @@ public class Broker implements BrokerInterface, Node, Serializable{
                     e.printStackTrace();
                 }
                 try{
-                    address = "localhost";
+                    address = Inet4Address.getLocalHost().getHostAddress();
                     brokerSocket = new Socket(address, 7000);
                     DataOutputStream dos = new DataOutputStream(brokerSocket.getOutputStream());
                     dos.writeUTF("update_nodes");
@@ -134,7 +134,7 @@ public class Broker implements BrokerInterface, Node, Serializable{
                 }
             case 6000:
                 try{
-                    address = "localhost";
+                    address = Inet4Address.getLocalHost().getHostAddress();
                     brokerSocket = new Socket(address, 5000);
                     DataOutputStream dos = new DataOutputStream(brokerSocket.getOutputStream());
                     dos.writeUTF("update_nodes");
@@ -152,7 +152,7 @@ public class Broker implements BrokerInterface, Node, Serializable{
                     e.printStackTrace();
                 }
                 try{
-                    address = "localhost";
+                    address = Inet4Address.getLocalHost().getHostAddress();
                     brokerSocket = new Socket(address, 7000);
                     DataOutputStream dos = new DataOutputStream(brokerSocket.getOutputStream());
                     dos.writeUTF("update_nodes");
@@ -171,7 +171,7 @@ public class Broker implements BrokerInterface, Node, Serializable{
                 }
             case 7000:
                 try{
-                    address = "localhost";
+                    address = Inet4Address.getLocalHost().getHostAddress();
                     brokerSocket = new Socket(address, 5000);
                     DataOutputStream dos = new DataOutputStream(brokerSocket.getOutputStream());
                     dos.writeUTF("update_nodes");
@@ -189,7 +189,7 @@ public class Broker implements BrokerInterface, Node, Serializable{
                     e.printStackTrace();
                 }
                 try{
-                    address = "localhost";
+                    address = Inet4Address.getLocalHost().getHostAddress();
                     brokerSocket = new Socket(address, 6000);
                     DataOutputStream dos = new DataOutputStream(brokerSocket.getOutputStream());
                     dos.writeUTF("update_nodes");

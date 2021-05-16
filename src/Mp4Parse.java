@@ -62,6 +62,20 @@ public class Mp4Parse{
    public int getChunksNumber() {
       return chunks.size();
    }
+
+
+   public void delete() {
+      try {
+         inputStream.reset();
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+      outputStream.reset();
+      parts = 0;
+      read = 0;
+      streamSize = 0;
+      chunks.clear();
+   }
 }
 
 
