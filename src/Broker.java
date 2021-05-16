@@ -1,8 +1,6 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import java.security.*;
-import java.math.*;
 
 public class Broker implements BrokerInterface, Node, Serializable{
     //fields
@@ -15,8 +13,6 @@ public class Broker implements BrokerInterface, Node, Serializable{
     String address;
 
     private Boolean isOnline = false;
-    private List<Consumer> registeredUsers;
-    private List<Publisher> registeredPublishers;
 
     private transient ObjectInputStream ois = null;
     private transient ObjectOutputStream oos = null;
@@ -32,39 +28,7 @@ public class Broker implements BrokerInterface, Node, Serializable{
         this.id= id;
         init(port);
     }
-    public static String encryptThisString(String input)
-    {
-        try {
-            // getInstance() method is called with algorithm SHA-1
-            MessageDigest md = MessageDigest.getInstance("SHA-1");
-
-            // digest() method is called
-            // to calculate message digest of the input string
-            // returned as array of byte
-            byte[] messageDigest = md.digest(input.getBytes());
-
-            // Convert byte array into signum representation
-            BigInteger no = new BigInteger(1, messageDigest);
-
-            // Convert message digest into hex value
-            String hashtext = no.toString(16);
-
-            // Add preceding 0s to make it 32 bit
-            while (hashtext.length() < 32) {
-                hashtext = "0" + hashtext;
-            }
-
-            // return the HashText
-            return hashtext;
-        }
-
-        // For specifying wrong message digest algorithms
-            catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
+    
     public void extractDuplicates(List<Broker> b){
         for (int i = 0; i<b.size(); i++){
             for(int j = i+1; j<b.size(); j++){
@@ -75,9 +39,7 @@ public class Broker implements BrokerInterface, Node, Serializable{
         }
     }
 
-    //  broker implementation
     public void calculateKeys() {
-
 
     }
 
@@ -93,7 +55,7 @@ public class Broker implements BrokerInterface, Node, Serializable{
 
     }
 
-    public void notifyBrokersOnChanges() {
+    public void notifyBrokersOnChanges() {//trying to add the broker-to-broker communication in a greedy way
         switch(port){
             case 5000:
                 try{
@@ -218,9 +180,6 @@ public class Broker implements BrokerInterface, Node, Serializable{
 
     }
 
-
-    //node methods
-
     public void init(int port) {
         try{
             serverSocket = new ServerSocket(port);
@@ -246,7 +205,7 @@ public class Broker implements BrokerInterface, Node, Serializable{
                 DataInputStream typeInput = new DataInputStream(socket.getInputStream());
                 int type = typeInput.readInt();
                 switch(type){
-                    case 1: // is consumer searching
+                    case 1: // for consumer: search video mode
                         System.out.println("A new client is connected : " + socket);
                         ois = new ObjectInputStream(socket.getInputStream());                                    
                         oos = new ObjectOutputStream(socket.getOutputStream());                        
@@ -261,7 +220,7 @@ public class Broker implements BrokerInterface, Node, Serializable{
                         }
                         socket.close();                        
                         break;
-                    case 2: // publisher uploads new video
+                    case 2: // for publisher: upload new video mode
                         System.out.println("A new publisher is connected : " + socket);
                         ois = new ObjectInputStream(socket.getInputStream());
                         oos = new ObjectOutputStream(socket.getOutputStream());
@@ -276,7 +235,7 @@ public class Broker implements BrokerInterface, Node, Serializable{
                         }
                         socket.close();
                         break;
-                    case 3: // publisher removes video - updates video map
+                    case 3: // for publisher: remove video mode
                         System.out.println("A new publisher is connected : " + socket);
                         ois = new ObjectInputStream(socket.getInputStream());
                         oos = new ObjectOutputStream(socket.getOutputStream());
@@ -321,14 +280,11 @@ public class Broker implements BrokerInterface, Node, Serializable{
 
     public static void main(String args[]) throws Exception{
         Broker broker = new Broker(Integer.parseInt(args[0]), 1);
-        // broker.updateNodes();
-        // broker.notifyBrokersOnChanges();
         broker.connect();
-        // broker.updateNodes();
     }
 }
 
-class ClientHandler1 extends Thread{
+class ClientHandler1 extends Thread{ // handler for broker sharing to consumer
     
     final ObjectInputStream ois;
     final ObjectOutputStream oos;
@@ -343,9 +299,7 @@ class ClientHandler1 extends Thread{
         this.ois = ois;
         this.oos = oos;
         this.dis = dis;
-        this.dos = dos;
-
-        
+        this.dos = dos; 
 
         for(int i=0; i<b.size(); i++){
             this.temp_brokers.add(b.get(i));
@@ -376,7 +330,7 @@ class ClientHandler1 extends Thread{
         }
     }
 }
-class ClientHandler2 extends Thread{
+class ClientHandler2 extends Thread{ // handler for video sharing to consumer
     
     final ObjectInputStream ois;
     final ObjectOutputStream oos;
@@ -393,35 +347,23 @@ class ClientHandler2 extends Thread{
         this.dis = dis;
         this.dos = dos;
         this.broker = broker;
-
-
-        //to be removed
-        /*VideoFile vf = new VideoFile("test.mp4", "first");
-        vf.setChannelName("giannis");
-        vf.setAssociatedHashtags("aaaaa");
-        broker.videos.addNew("aaaaa", vf);*/
     }
 
     @Override
     public void run(){        
         try{
-            System.out.println("1");
-            //String key = dis.readUTF();
             String key = (String) ois.readObject();
-            VideoList temp = broker.videos.search(key);
+            String name = (String) ois.readObject();
+            VideoList temp = broker.videos.search(key, name);
 
             int length = temp.size();
-            System.out.println("2");
-            //dos.writeInt(length);
             oos.writeObject(length);
-            System.out.println("for");
             for(int i = 0; i<length; i++){
                 oos.writeObject(temp.getVideo(i));
             }
             try{
                 dis.readUTF();
             }catch(Exception e){}
-            System.out.println("done");
             broker.videos.overNout();
         }
         catch(Exception e){
@@ -431,7 +373,7 @@ class ClientHandler2 extends Thread{
 }
 
 
-class PublisherHandler1 extends Thread{
+class PublisherHandler1 extends Thread{ // handler for publisher sharing a new video
     final ObjectInputStream ois;
     final ObjectOutputStream oos;
     final DataInputStream dis;
@@ -461,13 +403,12 @@ class PublisherHandler1 extends Thread{
             dos.writeUTF("done");
         }
         catch(Exception e){
-            //e.printStackTrace();
-            System.err.println(e);
+            e.printStackTrace();
         }
     }
 }
 
-class PublisherHandler2 extends Thread{
+class PublisherHandler2 extends Thread{// handler for publisher removing a video
     final ObjectInputStream ois;
     final ObjectOutputStream oos;
     final DataInputStream dis;
@@ -492,7 +433,6 @@ class PublisherHandler2 extends Thread{
 
             System.out.println("Deleting.....");
             broker.videos.deleteValue(video, channel);            
-            dos.writeUTF("done");
         }
         catch(Exception e){
             e.printStackTrace();

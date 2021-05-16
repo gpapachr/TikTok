@@ -1,6 +1,5 @@
 import java.io.*;
 import java.net.*;
-import java.nio.file.*;
 import java.util.*;
 
 public class Consumer implements ConsumerInterface, Node, Serializable{
@@ -14,10 +13,7 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
     private transient DataInputStream dis = null;
     private String address;
     private int port;
-    private Scanner sc;
     private static int mode = -1;
-
-    private Broker broker = null;
     
     //methods
 
@@ -39,45 +35,45 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
 
     public void playData(String s, VideoFile v) {
         try {
-            File splitFiles = new File(s);// get all files which are to be join
+            File splitFiles = new File(s);// get all files to join
             if (splitFiles.exists()) {
                 File[] files = splitFiles.getAbsoluteFile().listFiles();
                 Arrays.sort(files);
                 if (files.length != 0) {
                     System.out.println("Total files to be join: "+ files.length);
 
-                String joinFileName = v.getVideoName() + ".mp4";
-                System.out.println("Join file created with name -> "+ joinFileName);
-                File fileJoinPath = new File(s);// merge video files saved in this location
+                    String joinFileName = v.getVideoName() + ".mp4";
+                    System.out.println("Join file created with name -> "+ joinFileName);
+                    File fileJoinPath = new File(s);// merge video files saved in this location
 
-                OutputStream outputStream = new FileOutputStream(s +"/"+ v.getVideoName() + ".mp4");
+                    OutputStream outputStream = new FileOutputStream(s +"/"+ v.getVideoName() + ".mp4");
 
-                for (File file : files) {
-                    System.out.println("Reading the file -> "+ file.getName());
-                    InputStream inputStream = new FileInputStream(file);
+                    for (File file : files) {
+                        System.out.println("Reading the file -> "+ file.getName());
+                        InputStream inputStream = new FileInputStream(file);
 
-                    int readByte = 0;
-                    while((readByte = inputStream.read()) != -1) {
-                        outputStream.write(readByte);
+                        int readByte = 0;
+                        while((readByte = inputStream.read()) != -1) {
+                            outputStream.write(readByte);
+                        }
+                        inputStream.close();
                     }
-                    inputStream.close();
+
+                    System.out.println("Join file saved at -> "+ fileJoinPath.getAbsolutePath() +"/"+ joinFileName);
+                    outputStream.close();
+                } 
+                else {
+                    System.err.println("No Files exist in path -> "+ splitFiles.getAbsolutePath());
                 }
-
-                System.out.println("Join file saved at -> "+ fileJoinPath.getAbsolutePath() +"/"+ joinFileName);
-                outputStream.close();
-            } else {
-                System.err.println("No Files exist in path -> "+ splitFiles.getAbsolutePath());
-            }
-        } else {
+            } 
+            else{
             System.err.println("This path doesn't exist -> "+ splitFiles.getAbsolutePath());
+            }
+        } 
+        catch (Exception e) {
+            e.printStackTrace();
         }
-    } catch (Exception e) {
-        e.printStackTrace();
     }
-
-    }
-
-    //Node Methods Implementation
 
     public void init(int port) {
         this.port = port;
@@ -94,7 +90,6 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
 
     public void connect() {
         try{
-            //sc = new Scanner(System.in);
             socket = new Socket(address, port);
             System.out.println("Socket= " + socket + "\n");
 
@@ -102,26 +97,6 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
             dos.writeInt(mode);
 
             dis = new DataInputStream(socket.getInputStream());
-            //ois = new ObjectInputStream(socket.getInputStream());
-            //oos = new ObjectOutputStream(socket.getOutputStream());
-
-
-           /* 
-
-            System.out.println("Waiting for server's response");
-            Broker temp = (Broker) ois.readObject();
-            while(temp!=null){
-                brokers.add(temp);
-                temp = (Broker) ois.readObject();
-            }
-            System.out.println("List acquired");
-
-            for(int i=0; i<brokers.size(); i++){
-                System.out.println(brokers.get(i).id);
-            }
-
-            socket.close();
-            System.out.println("Connection closed");*/
         }
         catch(Exception e){
             e.printStackTrace();
@@ -152,18 +127,14 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
             connect();
             oos = new ObjectOutputStream(socket.getOutputStream());
             oos.writeObject(key);
-            //dos.writeUTF(key);
-            //int loop = dis.readInt();
+            oos.writeObject(this.channelName);
             ois = new ObjectInputStream(socket.getInputStream());
             int loop = (int) ois.readObject();
-            System.out.println(loop);
+            System.out.println("Videos found: " + loop);
             VideoList returnedVideos = new VideoList();
             for (int i=0; i<loop; i++){               
                 VideoFile temp = (VideoFile) ois.readObject();
-
-                if(!temp.getChannelName().equals(this.channelName)){
-                    returnedVideos.addVideo(temp);
-                }
+                returnedVideos.addVideo(temp);
             }
             dos.writeUTF("done");
             returnedVideos.print();
@@ -175,7 +146,6 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
 
             for (int i=0; i<returnedVideos.size(); i++){
 
-                System.out.println(returnedVideos.getVideo(i).getVideoName() + " == " + response + "?");
                 if(returnedVideos.getVideo(i).getVideoName().equalsIgnoreCase(response)){
                     String videoFile;
                     OutputStream os;

@@ -1,6 +1,7 @@
 import java.util.*;
 import java.io.*;
-import java.net.*;
+import java.time.*;
+import java.time.format.DateTimeFormatter;  
 
 public class VideoFile implements Serializable{
     private String videoName;
@@ -19,7 +20,14 @@ public class VideoFile implements Serializable{
         this.path = s;
         this.videoName = name;
         File video = new File(path);
-        //this.length = getVideoLength(video);
+        this.length = video.length();
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");  
+        LocalDateTime now = LocalDateTime.now();  
+        this.dateCreated = dtf.format(now);  
+    }
+
+    public String getDate(){
+        return dateCreated;
     }
 
     public void setChannelName(String channelName) {

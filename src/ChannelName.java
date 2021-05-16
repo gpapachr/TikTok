@@ -3,7 +3,7 @@ import java.util.*;
 public class ChannelName {
     public String channelName;
     public ArrayList<String> hashtagsPublished;
-    public HashMap<String, ArrayList<Value>> userVideoFilesMap;
+    public HashMap<String, ArrayList<VideoFile>> userVideoFilesMap;
 
     ChannelName(String channelName){
         this.channelName = channelName;
@@ -25,11 +25,11 @@ public class ChannelName {
         this.hashtagsPublished = hashtagsPublished;
     }
 
-    public HashMap<String, ArrayList<Value>> getUserVideoFilesMap() {
+    public HashMap<String, ArrayList<VideoFile>> getUserVideoFilesMap() {
         return userVideoFilesMap;
     }
 
-    public void setUserVideoFilesMap(HashMap<String, ArrayList<Value>> userVideoFilesMap) {
+    public void setUserVideoFilesMap(HashMap<String, ArrayList<VideoFile>> userVideoFilesMap) {
         this.userVideoFilesMap = userVideoFilesMap;
     }
 }

@@ -68,7 +68,7 @@ public class Mp4Parse{
       try {
          inputStream.reset();
       } catch (IOException e) {
-         e.printStackTrace();
+        
       }
       outputStream.reset();
       parts = 0;

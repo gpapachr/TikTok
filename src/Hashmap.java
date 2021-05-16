@@ -5,9 +5,7 @@ public class Hashmap{
     private HashMap<String, ArrayList<VideoFile>> videos = new HashMap<String, ArrayList<VideoFile>>();
     private VideoList videosToReturn = new VideoList();
 
-    Hashmap(){
-
-    }
+    Hashmap(){}
 
     public boolean contains(String key){
         for (String i: videos.keySet()){
@@ -67,10 +65,12 @@ public class Hashmap{
         printMap();
     }
 
-    public VideoList search(String key){
+    public VideoList search(String key, String name){
         if(contains(key)){
             for(int i = 0; i < videos.get(key).size(); i++){
-                videosToReturn.addVideo(videos.get(key).get(i));
+                if(!videos.get(key).get(i).getChannelName().equals(name)){
+                    videosToReturn.addVideo(videos.get(key).get(i));
+                }
             }
             return videosToReturn;
         }

@@ -142,8 +142,7 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
         for(int i=0; i<mp.getChunksNumber(); i++){
             chunks.add(mp.getChunk(i));
         }
-        System.out.println("Shit happened: " + chunks.size());
-        
+       
         vf.setVideoFileChunk(chunks);
         mp.delete();
         chunks.clear();
@@ -197,5 +196,6 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
                 e.printStackTrace();
             }
         }
+        sc.close();
     }
 }

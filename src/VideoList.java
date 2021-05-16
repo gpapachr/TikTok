@@ -29,7 +29,7 @@ public class VideoList{
             System.out.println("null");
         }
         for(int i=0; i<videos.size(); i++){
-            System.out.println(videos.get(i).getVideoName() + " by: " + videos.get(i).getChannelName());
+            System.out.println(videos.get(i).getVideoName() + " by: " + videos.get(i).getChannelName() + ", Date: " + videos.get(i).getDate());
         }
         System.out.println();
     }
