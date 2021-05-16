@@ -81,7 +81,11 @@ public class Consumer implements ConsumerInterface, Node, Serializable{
 
     public void init(int port) {
         this.port = port;
-        address = Inet4Address.getLocalHost().getHostAddress();
+        try {
+            address = Inet4Address.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
     }
 
     public List<Broker> getBrokers() {
