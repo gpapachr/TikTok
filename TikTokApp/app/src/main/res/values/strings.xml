@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">TikTokApp</string>
+    <string name="login">Login</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="welcome_to_tiktok">Welcome to TikTok</string>
+    <string name="what_do_you_want_to_do">What do you want to do?</string>
+    <string name="publish_video">Publish Video</string>
+    <string name="search_video">Search Video</string>
+    <string name="sign_out">Sign out</string>
+    <string name="upload_new_video">Upload New Video</string>
+    <string name="video_file_name">Video File Name</string>
+    <string name="video_name">Video Name</string>
+    <string name="hashtags_splited">Hashtags - splited with \',\'</string>
+    <string name="upload">upload</string>
+    <string name="welcome">Welcome</string>
+    <string name="search">search</string>
+    <string name="cancel">cancel</string>
+    <string name="search_for_a_video_by_its_name_or_its_hashtag">Search for a video by its name or its hashtag:</string>
+    <string name="search_key">Search key</string>
+    <string name="delete_video">delete video</string>
+</resources>
