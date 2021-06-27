@@ -2,6 +2,7 @@ package com.example.myapplication.TikTokApp;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Application;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -46,7 +47,7 @@ public class ConsumerMainActivity extends AppCompatActivity {
         search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), null); //todo: add search next screen
+                Intent intent = new Intent(getApplicationContext(), AppMainActivity.class);
                 intent.putExtra("username", username);
 
                 ConsumerRunner run = new ConsumerRunner();

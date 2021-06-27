@@ -6,9 +6,9 @@ import java.net.*;
 import java.util.*;
 import java.io.*;
 
-public class Publisher extends Thread implements PublisherInterface, Node, Serializable{
-    
-    
+public class Publisher extends Thread implements PublisherInterface, Node, Serializable {
+
+
     private ChannelName channelName;
     private String address = "10.0.2.2";
     private int port;
@@ -18,15 +18,15 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
     private static String videoToDelete;
 
     private Hashmap data = new Hashmap();
-    
+
     private transient ObjectOutputStream oos = null;
     private transient DataOutputStream dos;
     private transient DataInputStream dis;
-    
+
     private ArrayList<byte[]> chunks = new ArrayList<byte[]>();
     private transient VideoFile vf = null;
-    
-    Publisher(int port, ChannelName channelName){
+
+    Publisher(int port, ChannelName channelName) {
         this.channelName = channelName;
         init(port);
         Log.e("DebugInfo: Constructor ok", "null");
@@ -41,7 +41,7 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
     }
 
     public void connect() { // mode: 1-consumer, 2-publisher upload, 3-publisher remove video
-        try{
+        try {
             socket = new Socket(address, port);
             System.out.println("Socket= " + socket + "\n");
 
@@ -49,8 +49,7 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
             dos.writeInt(mode);
 
             dis = new DataInputStream(socket.getInputStream());
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             Log.e("DebugInfo_in_connect_exception", e.toString());
 
@@ -58,35 +57,33 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
     }
 
     public void disconnect() {
-        try{
+        try {
             dos.close();
             oos.close();
             socket.close();
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-        }       
+        }
     }
 
     public void updateNodes() {
-        try{
+        try {
             mode = 3;
             connect();
             oos = new ObjectOutputStream(socket.getOutputStream());
             oos.writeObject(videoToDelete);
             oos.writeObject(channelName.getChannelName());
-            try{
+            try {
                 dis.readUTF();
+            } catch (Exception e) {
             }
-            catch(Exception e){}
             disconnect();
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void removeVideo(String Videoname){
+    public void removeVideo(String Videoname) {
         data.deleteValue(Videoname, channelName.getChannelName());
         videoToDelete = Videoname;
         updateNodes();
@@ -97,11 +94,11 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
     }
 
     public void removeHashTag(String s) {
-        
+
     }
 
     public void getBrokerList() {
-        
+
     }
 
     public Broker HashTopic(String s) {
@@ -109,58 +106,63 @@ public class Publisher extends Thread implements PublisherInterface, Node, Seria
     }
 
     public void push(String path, String name, String hashtag) {
-        try{
+        try {
             generateChunks(path, name, hashtag);
-    
-            for(int i = 0; i<vf.getHashtagsSize(); i++){
+
+            for (int i = 0; i < vf.getHashtagsSize(); i++) {
                 data.addNew(vf.getHashtag(i), vf);
             }
             mode = 2;
+
+            Log.e("aaaaa", "Try broker connection");
             connect();
+            Log.e("aaaaa", "broker connected");
+
             oos = new ObjectOutputStream((socket.getOutputStream()));
-            oos.writeObject(vf);            
-            try{
+            oos.writeObject(vf);
+            try {
                 dis.readUTF();
-            }
-            catch(Exception e){
+            } catch (Exception e) {
                 Log.e("DebugInfo_in_push_readUTF_exception", e.toString());
             }
             disconnect();
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             Log.e("DebugInfo_in_push_exception", e.toString());
-        }
-        finally {
+        } finally {
             Log.e("DebugInfo: finally OK", "null");
         }
     }
 
     public void notifyFailure(Broker b) {
-        
+
     }
 
     public void notifyBrokersForHashTags(String s) {
 
     }
-    
+
     public void generateChunks(String path, String name, String hashtag) {
 
-
+        Log.e("aaaaa", "VideoFile to add");
         vf = new VideoFile(path, name);
+        Log.e("aaaaa", "VideoFile created");
+        Log.e("aaaaa", vf.getVideoName() + "just created");
+
         vf.setChannelName(channelName.getChannelName());
         vf.setAssociatedHashtags(hashtag);
         Mp4Parse mp = new Mp4Parse(path);
-        
+
         mp.parse();
-        for(int i=0; i<mp.getChunksNumber(); i++){
+        for (int i = 0; i < mp.getChunksNumber(); i++) {
             chunks.add(mp.getChunk(i));
         }
-       
+
         vf.setVideoFileChunk(chunks);
         mp.delete();
         chunks.clear();
         Log.e("DebugInfo_generateChunksOk", "null");
+        Log.e("aaaaa", "chunks created");
 
     }
 //    public static void main(String args[]) throws Exception{

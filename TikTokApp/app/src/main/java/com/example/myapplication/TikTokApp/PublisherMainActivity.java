@@ -1,17 +1,19 @@
 package com.example.myapplication.TikTokApp;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.app.AlertDialog;
 import android.content.*;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.*;
+
+import java.util.concurrent.Executor;
 
 public class PublisherMainActivity extends AppCompatActivity {
 
@@ -29,7 +31,6 @@ public class PublisherMainActivity extends AppCompatActivity {
     String username;
 
     VideoView videoView;
-
 
 
     @Override
@@ -87,18 +88,17 @@ public class PublisherMainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
-
-                if(intent.resolveActivity(getPackageManager()) != null){
-                    startActivityForResult(intent, VIDEO_REQUEST);
-                }
+                Log.e("aaaaa", "Try Activity For result");
+                startActivityForResult(intent, VIDEO_REQUEST);
+                Log.e("aaaaa", "Start Activity For result");
             }
         });
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(resultCode == RESULT_OK && requestCode == VIDEO_REQUEST){
+        if (resultCode == RESULT_OK && requestCode == VIDEO_REQUEST) {
             videoUri = data.getData();
             videoView.setVideoURI(videoUri);
             videoView.start();
@@ -109,14 +109,15 @@ public class PublisherMainActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(String... strings) {
+        Cursor cursor = getContentResolver().query(videoUri, null, null, null, null);
+        cursor.moveToFirst();
+        int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+        String path = cursor.getString(idx);
+        Log.e("aaaaa", path);
+        Publisher p = new Publisher(5000, new ChannelName(username));
+        p.push(path, name.toString(), hashtag.toString());
 
-            ChannelName channelName = new ChannelName(username);
-            Publisher p = new Publisher(5000, channelName);
-
-            p.push(file.getText().toString(), name.getText().toString(), hashtag.getText().toString());
-
-            Log.e("DebugInfo: PR OK", "null");
-            return "ok";
+        return "ok";
         }
     }
 }
